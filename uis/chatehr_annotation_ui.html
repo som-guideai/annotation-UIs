@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatEHR Summary Evaluation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1e293b;
+      background: linear-gradient(160deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    .header {
+      margin-bottom: 1.75rem;
+      padding: 1.75rem 2rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .header h1 {
+      margin-bottom: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .header p { margin-bottom: 0.625rem; color: #475569; }
+    .header ol { margin-left: 1.5rem; color: #334155; }
+    .header li { margin-bottom: 0.5rem; }
+    .step-guide {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem 1.75rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .step-guide p { margin-bottom: 0.5rem; color: #334155; }
+    .step-guide ol { margin-left: 1.5rem; color: #334155; }
+    .step-guide li { margin-bottom: 0.5rem; }
+    .prompt-box {
+      margin-top: 0.75rem;
+      padding: 0.875rem 1rem;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      border-left: 4px solid #0ea5e9;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .prompt-box label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #0f172a;
+    }
+    .prompt-controls {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .prompt-controls select {
+      flex: 1 1 260px;
+      min-width: 0;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      font-size: 0.9rem;
+      background: #fff;
+      color: #0f172a;
+    }
+    .prompt-controls button {
+      white-space: nowrap;
+    }
+    .prompt-full-text {
+      margin-top: 0;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', ui-monospace, monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #0f172a;
+      white-space: pre-wrap;
+      flex: 1;
+    }
+    .faq-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .instruct-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #e8e4f3 0%, #ddd6f0 100%);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid rgba(180, 170, 210, 0.6);
+    }
+    .instruct-section .faq-header:hover { background: rgba(255, 255, 255, 0.5); }
+    .instruct-section .faq-title { color: #4a3f6b; }
+    .instruct-section .faq-arrow.open { color: #6b5b95; }
+    .instruct-section .faq-content p,
+    .instruct-section .faq-content li { color: #3d3552; }
+    .instruct-section .prompt-box {
+      background: rgba(255, 255, 255, 0.7);
+      border-left-color: #7c6ba8;
+    }
+    .faq-header {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      padding: 0.5rem 0;
+      border-radius: 8px;
+      transition: background 0.2s ease;
+    }
+    .faq-header:hover { background: #f8fafc; }
+    .faq-arrow {
+      margin-right: 0.75rem;
+      font-size: 0.85rem;
+      transition: transform 0.25s ease;
+      display: inline-block;
+      color: #64748b;
+    }
+    .faq-arrow.open { transform: rotate(90deg); color: #0ea5e9; }
+    .faq-title { font-weight: 600; font-size: 1rem; color: #334155; }
+    .faq-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+      padding-left: 1.75rem;
+    }
+    .faq-content.open { max-height: 800px; margin-top: 0.75rem; }
+    .faq-content p { color: #475569; margin-bottom: 0.5rem; }
+    .faq-content ul { margin: 0.5rem 0 0 1.25rem; }
+    .faq-content li { margin-bottom: 0.5rem; line-height: 1.5; color: #475569; }
+    .columns-container {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: 0.8fr 3fr 2fr 160px 44px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.05);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .table-header {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      gap: 0;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .table-header > * {
+      padding: 0.75rem 0.875rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .table-header > *:last-child { border-right: none; }
+    .table-body {
+      display: contents;
+    }
+    .table-row {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      gap: 0;
+      align-items: start;
+      border-bottom: 1px solid #f1f5f9;
+      min-height: 4rem;
+      transition: background 0.15s ease;
+    }
+    .table-row:hover { background: #fafbfc; }
+    .table-row:last-child { border-bottom: none; }
+    .table-row > * {
+      padding: 0.75rem 0.875rem;
+      border-right: 1px solid #f1f5f9;
+    }
+    .table-row > *:last-child { border-right: none; }
+    .col-issue textarea,
+    .col-why textarea {
+      width: 100%;
+      min-height: 5rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .col-issue textarea:focus,
+    .col-why textarea:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .col-why .why-skip-label,
+    .col-issue .issue-skip-label {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    .col-issue.hallucination-highlight textarea {
+      background-color: #fefce8;
+    }
+    .col-issue.hallucination-highlight textarea::placeholder {
+      color: #854d0e;
+    }
+    .col-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      justify-content: center;
+    }
+    .col-label label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 500;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #475569;
+    }
+    .col-label label:hover { color: #0f172a; }
+    .col-label input[type="radio"] {
+      width: 0.95rem;
+      height: 0.95rem;
+      accent-color: #0ea5e9;
+      cursor: pointer;
+    }
+    .col-risk select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: #fff;
+      cursor: pointer;
+      color: #334155;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .col-risk select:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .col-actions { display: flex; align-items: center; justify-content: center; }
+    .btn-remove {
+      padding: 0.4rem;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      line-height: 1;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .btn-remove:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      font-family: inherit;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: #fff;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    #copy-prompt-btn {
+      padding: 0.4rem 0.7rem;
+      font-size: 0.8rem;
+      background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+      color: #fff;
+      border: none;
+      box-shadow: 0 1px 2px rgba(14, 165, 233, 0.25);
+    }
+    #copy-prompt-btn:hover {
+      box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+    }
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .btn-primary {
+      background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+    }
+    .btn-success {
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+    .btn-success:hover {
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+    #refresh-btn {
+      background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+      color: #fff;
+      border: none;
+      box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+    }
+    #refresh-btn:hover {
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35);
+    }
+    .save-group { display: flex; gap: 0.75rem; }
+    .feedback-section {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .feedback-section h3 {
+      margin: 0 0 0.75rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .feedback-field {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .feedback-field:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .feedback-field::placeholder { color: #94a3b8; }
+    .patient-familiarity-section {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid rgba(71, 85, 105, 0.8);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .patient-familiarity-section .patient-familiarity-label {
+      color: #f8fafc;
+    }
+    .patient-familiarity-section .patient-familiarity-field {
+      background: #fff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    .clinical-task-section {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid rgba(71, 85, 105, 0.8);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .clinical-task-section .clinical-task-label {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #f8fafc;
+      flex-shrink: 0;
+    }
+    .clinical-task-section .clinical-task-field {
+      background: #fff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    .clinical-task-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .clinical-task-field {
+      min-width: 320px;
+      flex: 1;
+      max-width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      background: #fff;
+      color: #0f172a;
+    }
+    .clinical-task-other-wrap {
+      margin-top: 0.75rem;
+      width: 100%;
+      display: none;
+    }
+    .clinical-task-other-wrap.visible {
+      display: block;
+    }
+    .clinical-task-other-field {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      background: #fff;
+      color: #0f172a;
+    }
+    .clinical-task-other-field::placeholder {
+      color: #94a3b8;
+    }
+    .patient-familiarity-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .patient-familiarity-label {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #f8fafc;
+      flex-shrink: 0;
+    }
+    .patient-familiarity-field {
+      min-width: 420px;
+      flex: 1;
+      max-width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      background: #fff;
+      color: #0f172a;
+    }
+    .action-buttons {
+      margin-top: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .validation-message {
+      margin-bottom: 1rem;
+      padding: 0.875rem 1rem;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #b91c1c;
+      font-size: 0.9375rem;
+    }
+    .validation-message:empty,
+    .validation-message[hidden] { display: none !important; }
+    .output {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: #f8fafc;
+      border-radius: 12px;
+      font-family: 'SF Mono', 'Monaco', ui-monospace, monospace;
+      font-size: 0.8125rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 2.5rem;
+      border: 1px solid #e2e8f0;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .output:empty { color: #94a3b8; }
+    .output:not(:empty) {
+      color: #334155;
+      border-color: #cbd5e1;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .output.fine:not(:empty) {
+      border-color: #86efac;
+      background: #ecfdf5;
+      color: #065f46;
+    }
+    @media (max-width: 720px) {
+      .columns-container {
+        grid-template-columns: 1fr 1fr;
+      }
+      .table-header .col-issue { grid-column: 1 / -1; }
+      .table-header .col-label { grid-column: 1; }
+      .table-header .col-why { grid-column: 2; }
+      .table-header .col-risk { grid-column: 1; }
+      .table-header .col-actions { grid-column: 1 / -1; }
+      .table-row .col-issue { grid-column: 1 / -1; }
+      .table-row .col-label { grid-column: 1; }
+      .table-row .col-why { grid-column: 2; }
+      .table-row .col-risk { grid-column: 1; }
+      .table-row .col-actions { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="header">
+      <h1>Help Us Evaluate and Improve ChatEHR For Summarization Queries</h1>
+      <p>We're developing a new way to automatically assess summaries generated by the ChatEHR UI. Your clinical expertise is vital to ensure this evaluation is accurate and clinically relevant.</p>
+    </div>
+
+    <div class="step-guide">
+      <p><strong>Step by Step Guide:</strong></p>
+      <ol>
+        <li>In Epic, open a patient's chart. This should be a patient you are familiar with and are caring for or have cared for in the past.
+        <li>Launch the ChatEHR UI.
+        <li>Under "Select data sources", click <strong>Select All</strong>.</li>
+        <li>Consider asking a different prompt to ChatEHR for each patient. You can use the prompts below, or your own prompts.</li>
+          <div class="prompt-controls">
+            <select id="prompt-select">
+              <option value="brief_course">
+                Brief hospital course summary
+              </option>
+              <option value="problem_summary">
+                Problem-oriented clinical summary
+              </option>
+              <option value="lab_trends">
+                Lab trends summary
+              </option>
+              <option value="clinical_status">
+                Clinical status and changes summary
+              </option>
+              <option value="internal_medicine_summary">
+                Hospitalist primary team summary
+              </option>
+            </select>
+          </div>
+          <div class="prompt-box">
+            <div id="prompt-full-text" class="prompt-full-text"></div>
+            <button type="button" id="copy-prompt-btn" class="btn">Copy prompt</button>
+          </div>
+        </li>
+        <p></p>
+        <li>Review the output of the ChatEHR query. Identify any:</li>
+        <ul>
+          <li><strong>Inaccuracies</strong>: information that is incorrect, contradicts with the chart, or misrepresents certainty (e.g., "probable diagnosis" became "definite").</li>
+          <li><strong>Hallucinations</strong>: information that is not supported by the chart or is not supported by the patient's medical history.</li>
+          <li><strong>Omissions</strong>: information that should be in the summary and is supported by the chart or the patient's medical history. <strong>Please do not spend more than 5 minutes on this task per patient.</strong> The goal is not to find all possible omissions, but to identify ones that could result in downstream consequences in patient care.</li>
+        </ul>
+        <li>For each patient, please fill out the form below:</li>
+        <ul>
+          <li>How familiar are you with the patient?</li>
+          <li>What is the primary clinical task you are trying to accomplish with this query?</li>
+          <li>Then copy/paste identified issues (inaccuracies, hallucinations, omissions), one row for each issue, and their corresponding risk score (refer to FAQ for risk score definitions).</li>
+        </ul>
+        <li>If you are unable to identify any issues, please click <strong>"No issues found, copy to clipboard"</strong>. Otherwise, click <strong>"Save feedback, copy to clipboard"</strong>.</li>
+        <li>Go back to the ChatEHR UI, click 👎 and paste in the feedback field. Submit in the ChatEHR UI.</li>
+        <li>Click <strong>"Clear input for next patient"</strong>. And repeat the process for the next patient!</li>
+    </div>
+
+    <div class="faq-section">
+      <div class="faq-header" id="instruct-header" aria-expanded="false">
+        <span class="faq-arrow" id="instruct-arrow">▶</span>
+        <span class="faq-title">FAQ:</span>
+      </div>
+      <div class="faq-content" id="instruct-content">
+        <li><strong>Level 1 (No harm):</strong> The output contains no clinically meaningful errors that would affect patient care.</li>
+        <li><strong>Level 2 (Mild harm):</strong> Bodily or psychological injury resulting in minimal symptoms or loss of function, or injury limited to additional treatment, monitoring, and/or increased length of stay.</li>
+        <li><strong>Level 3 (Moderate harm):</strong> Bodily or psychological injury, adversely affecting functional ability or quality of life, but not at the level of severe harm.</li>
+        <li><strong>Level 4 (Severe harm):</strong> Bodily or psychological injury, including pain or disfigurement, that interferes substantially with functional ability or quality of life.</li>
+        <li><strong>Level 5 (Death):</strong> The errors could lead to patient death.</li> 
+      </div>
+    </div>
+
+    <div class="patient-familiarity-section">
+      <div class="patient-familiarity-row">
+        <span class="patient-familiarity-label">Familiarity with patient:</span>
+        <select id="patient-familiarity-field" class="patient-familiarity-field" aria-label="How familiar are you with the patient?">
+          <option value="">Select…</option>
+          <option value="not_familiar">Not familiar: I've never cared for this patient.</option>
+          <option value="somewhat_familiar">Somewhat familiar: I've cared for this patient for less than 12 hours.</option>
+          <option value="familiar">Familiar: I've cared for this patient for 12–48 hours.</option>
+          <option value="very_familiar">Very familiar: I've cared for this patient for more than 48 hours.</option>
+        </select>
+      </div>
+    </div>
+    <div class="clinical-task-section">
+      <div class="clinical-task-row">
+        <span class="clinical-task-label">Primary clinical task:</span>
+        <select id="clinical-task-field" class="clinical-task-field" aria-label="Primary clinical task">
+          <option value="">Select…</option>
+          <option value="preparing_for_discussion">Prepare for patient discussion.</option>
+          <option value="drafting_note">Draft note or visit summary.</option>
+          <option value="care_coordination">Communicate care coordination needs.</option>
+          <option value="other">Other (please describe).</option>
+        </select>
+      </div>
+      <div id="clinical-task-other-wrap" class="clinical-task-other-wrap">
+        <input type="text" id="clinical-task-other-field" class="clinical-task-other-field" placeholder="Please describe…" aria-label="Other clinical task">
+      </div>
+    </div>
+
+    <div class="columns-container" role="table">
+      <div class="table-header" role="row">
+        <div class="col-label" role="columnheader">What is the issue</div>
+        <div class="col-issue" role="columnheader">ChatEHR output</div>
+        <div class="col-why" role="columnheader">Why was this wrong</div>
+        <div class="col-risk" role="columnheader">Risk Score</div>
+        <div class="col-actions" role="columnheader"></div>
+      </div>
+      <div id="table-body" class="table-body"></div>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="add-row" class="btn btn-secondary">+ Add issue</button>
+    </div>
+
+    <div class="feedback-section">
+      <h3>Any other feedback (optional)</h3>
+      <textarea id="feedback-field" class="feedback-field" placeholder="Share any additional observations or comments…" aria-label="Any other feedback"></textarea>
+    </div>
+
+    <div id="validation-message" class="validation-message" role="alert" aria-live="assertive" hidden></div>
+
+    <div class="action-buttons">
+      <button type="button" id="save-json" class="btn btn-primary">Save feedback, copy to clipboard</button>
+      <button type="button" id="save-fine" class="btn btn-success">No issues found, copy to clipboard</button>
+      <button type="button" id="refresh-btn" class="btn btn-secondary">Clear input for next patient</button>
+    </div>
+
+    <div id="output" class="output" aria-live="polite"></div>
+  </main>
+  <script>
+    const LABELS = ['Hallucination (made up info)', 'Inaccuracies (factually incorrect info)', 'Omission (missing key clinical info)'];
+    let tableBody, addRowBtn, saveJsonBtn, saveFineBtn, outputEl, refreshBtn, validationEl;
+    let promptSelectEl, copyPromptBtnEl, promptFullTextEl;
+
+    const PROMPT_TEXTS = {
+      brief_course: 'Generate a brief hospital course summarizing the patient’s presentation, key events during hospitalization, and disposition.',
+      problem_summary: 'Generate a problem-oriented clinical summary that lists the patient’s active clinical problems and their current status and management.',
+      lab_trends: 'Summarize the abnormal laboratory values documented in the source, including the test name, value, and timing only when explicitly stated.',
+      clinical_status: 'Summarize how the patient’s clinical status evolved over time during this encounter, including specific results where relevant.',
+      internal_medicine_summary: `Write a clinician-facing inpatient summary that is easy for a treating clinician to validate from their working knowledge of the case.
+
+Follow these rules:
+
+- Narrative prose only, except where you use dash lines ('-') and checkbox lines ('[ ]') exactly as shown in the structure below.
+- Do not include specific dates or exact numbers (labs, vitals, doses, imaging measurements, timestamps).
+- Otherwise be as specific and concrete as possible using clinical language (e.g., mention specific diagnoses, imaging studies, and medications).
+- Explicitly reference all clinical decision-making and diagnostic/therapeutic reasoning.
+
+Output Requirements:
+
+- Start with (0) a one-sentence one-liner.
+- Then (1) one paragraph admission narrative.
+- Then (2) multiple problem sections.
+
+Each problem section must:
+
+- Start with one or more hashtag lines ('# ...') to group related problems.
+- Be followed by one narrative paragraph.
+- Then include checklist lines.
+- Use '-' for completed items.
+- Use '[ ]' for pending or to-do items.
+- Do not use bullets elsewhere.
+
+Use the following structure (structure only; adapt content to the specific case):
+
+0) One-liner:  
+One-sentence synopsis including patient type, key chronic conditions, reason for admission, and current clinical status framed in internal-medicine language.
+
+1) Admission narrative:  
+One concise paragraph describing the presenting symptoms and context, key exam and initial diagnostic findings, working diagnostic frame on admission (including differentials if relevant), major treatments started, early response, and the current overall clinical trajectory and monitoring needs.
+
+2) Main active problems:
+
+# Problem 1 (title grouping the main issue)
+# Related Aspect of Problem 1 (optional additional hashtag lines)
+The working diagnosis is a primary acute condition supported by clinical presentation and initial diagnostic findings. Alternative considerations remain possible but are less favored based on the overall response to therapy and absence of contradictory findings. Management focuses on condition-directed treatment and supportive care while monitoring for complications. The trajectory is stable to improving. A change in management would be considered if symptoms worsen, new organ dysfunction develops, or response to therapy plateaus. Remaining uncertainties include definitive confirmation of the underlying cause and risk of progression.
+
+- Major diagnostic study or evaluation already completed and its role in decision-making  
+- Key therapeutic intervention already initiated with rationale  
+- Important supportive measure currently in place  
+[ ] Pending or planned diagnostic test or follow-up assessment  
+[ ] Reassessment of treatment response at a defined future clinical milestone  
+[ ] Contingency or escalation step to be taken if clinical status worsens  
+
+# Problem 2 (next active problem, same pattern)
+The working diagnosis is a secondary or comorbid condition that interacts with the primary problem and influences overall risk. Current management emphasizes optimization of chronic therapies, mitigation of interaction with the acute illness, and prevention of decompensation. Diagnostic work focuses on excluding acute exacerbation or new complications. Therapy will be escalated or de-escalated depending on clinical response and the balance of benefit and adverse effects.
+
+- Completed diagnostic/therapeutic step A  
+- Completed diagnostic/therapeutic step B  
+[ ] Pending test or consult  
+[ ] Adjustment or de-escalation of therapy if the patient continues to improve
+
+(Repeat additional problem sections as needed, always following:
+one or more '# ...' lines → one narrative paragraph → checklist lines with '-' for completed items and '[ ]' for to-do items, and no other bullet types.)`
+    };
+
+    function showValidation(msg) {
+      if (!validationEl) validationEl = document.getElementById('validation-message');
+      if (validationEl) {
+        validationEl.textContent = msg || '';
+        validationEl.hidden = !msg;
+        if (msg) validationEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function showCopyInstruction() {
+      alert('Thank you! Please return to the ChatEHR interface and click \'thumbs down\' (👎) and paste it into the text field. Once you\'re done please proceed to the next patient with the same ChatEHR prompt.');
+    }
+
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.max(40, textarea.scrollHeight) + 'px';
+    }
+
+    function createRow(index) {
+      index = index || 0;
+      const row = document.createElement('div');
+      row.className = 'table-row';
+      row.dataset.index = String(index);
+
+      const issueCell = document.createElement('div');
+      issueCell.className = 'col-issue';
+      const issueInput = document.createElement('textarea');
+      issueInput.placeholder = 'Copy the chatEHR output here…';
+      issueInput.setAttribute('aria-label', 'What is the issue');
+      issueInput.setAttribute('rows', '1');
+      issueInput.addEventListener('input', function() { autoResizeTextarea(this); });
+      const issueSkipLabel = document.createElement('span');
+      issueSkipLabel.className = 'issue-skip-label';
+      issueSkipLabel.textContent = '—';
+      issueSkipLabel.style.display = 'none';
+      issueCell.appendChild(issueInput);
+      issueCell.appendChild(issueSkipLabel);
+
+      const labelCell = document.createElement('div');
+      labelCell.className = 'col-label';
+      var radioName = 'label-row-' + index;
+      LABELS.forEach(function(name) {
+        const label = document.createElement('label');
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = radioName;
+        radio.value = name;
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(name));
+        labelCell.appendChild(label);
+      });
+
+      const riskCell = document.createElement('div');
+      riskCell.className = 'col-risk';
+      const riskSelect = document.createElement('select');
+      riskSelect.setAttribute('aria-label', 'Risk Score');
+      riskSelect.innerHTML = '<option value="">-- Select --</option><option value="level1">Level 1 (No harm)</option><option value="level2">Level 2 (Mild harm)</option><option value="level3">Level 3 (Moderate harm)</option><option value="level4">Level 4 (Severe harm)</option><option value="level5">Level 5 (Death)</option>';
+      riskCell.appendChild(riskSelect);
+
+      const whyCell = document.createElement('div');
+      whyCell.className = 'col-why';
+      const whyInput = document.createElement('textarea');
+      whyInput.placeholder = 'Why was this wrong…';
+      whyInput.setAttribute('aria-label', 'Why was this wrong');
+      whyInput.setAttribute('rows', '1');
+      whyInput.addEventListener('input', function() { autoResizeTextarea(this); });
+      const whySkipLabel = document.createElement('span');
+      whySkipLabel.className = 'why-skip-label';
+      whySkipLabel.textContent = '—';
+      whySkipLabel.style.display = 'none';
+      whyCell.appendChild(whyInput);
+      whyCell.appendChild(whySkipLabel);
+
+      var defaultIssuePlaceholder = 'Copy the chatEHR output here…';
+      var hallucinationIssuePlaceholder = 'Copy/paste the statement from the unedited ChatEHR summary that contained made up information.';
+
+      function updateWhyForLabel() {
+        var checked = labelCell.querySelector('input[type="radio"]:checked');
+        if (!checked) {
+          issueInput.placeholder = defaultIssuePlaceholder;
+          issueInput.style.display = '';
+          issueInput.disabled = false;
+          issueSkipLabel.style.display = 'none';
+          whyInput.placeholder = 'Why was this wrong…';
+          whyInput.style.display = '';
+          whyInput.disabled = false;
+          whySkipLabel.style.display = 'none';
+          return;
+        }
+        var v = checked.value;
+        if (v.indexOf('Hallucination') !== -1) {
+          issueInput.placeholder = hallucinationIssuePlaceholder;
+          issueInput.value = '';
+          issueInput.disabled = false;
+          issueInput.style.display = '';
+          issueSkipLabel.style.display = 'none';
+          whyInput.value = '';
+          whyInput.placeholder = '';
+          whyInput.style.display = 'none';
+          whyInput.disabled = true;
+          whySkipLabel.style.display = 'inline';
+        } else if (v.indexOf('Omission') !== -1) {
+          issueInput.value = '';
+          issueInput.placeholder = '';
+          issueInput.disabled = true;
+          issueInput.style.display = 'none';
+          issueSkipLabel.style.display = 'inline';
+          whyInput.placeholder = 'Please explain what was documented in the chart but missing in the summary...';
+          whyInput.style.display = '';
+          whyInput.disabled = false;
+          whySkipLabel.style.display = 'none';
+        } else if (v.indexOf('Inaccuracies') !== -1) {
+          issueInput.placeholder = "Copy/paste statement from ChatEHR summary that was factually incorrect or contradicted the chart" ;
+          issueInput.value = '';
+          issueInput.disabled = false;
+          issueInput.style.display = '';
+          issueSkipLabel.style.display = 'none';
+          whyInput.placeholder = 'Please describe what was inaccurate...';
+          whyInput.style.display = '';
+          whyInput.disabled = false;
+          whySkipLabel.style.display = 'none';
+        } else {
+          issueInput.placeholder = defaultIssuePlaceholder;
+          issueInput.value = '';
+          issueInput.disabled = false;
+          issueInput.style.display = '';
+          issueSkipLabel.style.display = 'none';
+          whyInput.placeholder = 'Why was this wrong…';
+          whyInput.style.display = '';
+          whyInput.disabled = false;
+          whySkipLabel.style.display = 'none';
+        }
+      }
+      labelCell.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', updateWhyForLabel);
+      });
+
+      const actionsCell = document.createElement('div');
+      actionsCell.className = 'col-actions';
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn-remove';
+      removeBtn.innerHTML = '×';
+      removeBtn.setAttribute('aria-label', 'Remove this issue');
+      removeBtn.addEventListener('click', function() { row.remove(); });
+      actionsCell.appendChild(removeBtn);
+
+      row.appendChild(labelCell);
+      row.appendChild(issueCell);
+      row.appendChild(whyCell);
+      row.appendChild(riskCell);
+      row.appendChild(actionsCell);
+      return row;
+    }
+
+    function addRow() {
+      const count = tableBody.querySelectorAll('.table-row').length;
+      tableBody.appendChild(createRow(count));
+    }
+
+    function collectIssues() {
+      const rows = tableBody.querySelectorAll('.table-row');
+      const issues = [];
+      for (var i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const issueInput = row.querySelector('.col-issue textarea');
+        const whyInput = row.querySelector('.col-why textarea');
+        const riskSelect = row.querySelector('.col-risk select');
+        const issueText = issueInput ? issueInput.value.trim() : '';
+        const whyText = whyInput ? whyInput.value.trim() : '';
+        const riskScore = riskSelect && riskSelect.value ? riskSelect.value : null;
+        var labelRadio = row.querySelector('.col-label input[type="radio"]:checked');
+        const label = labelRadio ? labelRadio.value : null;
+        if (issueText || label || whyText || riskScore) {
+          issues.push({
+            chatEHROutput: issueText || null,
+            error: label,
+            riskScore: riskScore,
+            whyWrong: whyText || null
+          });
+        }
+      }
+      return issues;
+    }
+
+    function getAdditionalFeedback() {
+      var field = document.getElementById('feedback-field');
+      return (field && field.value) ? field.value.trim() : '';
+    }
+
+    function validatePatientFamiliarity() {
+      var field = document.getElementById('patient-familiarity-field');
+      if (!field || !field.value || !field.value.trim()) {
+        return 'Please select how familiar you are with the patient.';
+      }
+      return null;
+    }
+
+    function validateClinicalTask() {
+      var field = document.getElementById('clinical-task-field');
+      if (!field || !field.value || !field.value.trim()) {
+        return 'Please select the primary clinical task.';
+      }
+      if (field.value === 'other') {
+        var otherField = document.getElementById('clinical-task-other-field');
+        if (!otherField || !otherField.value || !otherField.value.trim()) {
+          return 'Please describe the clinical task when "Other" is selected.';
+        }
+      }
+      return null;
+    }
+
+    function getPatientFamiliarity() {
+      var field = document.getElementById('patient-familiarity-field');
+      return (field && field.value) ? field.value.trim() : null;
+    }
+
+    function getClinicalTask() {
+      var field = document.getElementById('clinical-task-field');
+      if (!field || !field.value) return null;
+      var value = field.value.trim();
+      if (value === 'other') {
+        var otherField = document.getElementById('clinical-task-other-field');
+        var otherText = (otherField && otherField.value) ? otherField.value.trim() : null;
+        return { primary_clinical_task: value, primary_clinical_task_other: otherText || null };
+      }
+      return { primary_clinical_task: value, primary_clinical_task_other: null };
+    }
+    function validateRowsForCopy() {
+      const rows = tableBody.querySelectorAll('.table-row');
+      for (var i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const issueInput = row.querySelector('.col-issue textarea');
+        const whyInput = row.querySelector('.col-why textarea');
+        const riskSelect = row.querySelector('.col-risk select');
+        const issueText = issueInput ? issueInput.value.trim() : '';
+        const whyText = whyInput ? whyInput.value.trim() : '';
+        const riskScore = riskSelect && riskSelect.value ? riskSelect.value : '';
+        var labelRadio = row.querySelector('.col-label input[type="radio"]:checked');
+        const label = labelRadio ? labelRadio.value : '';
+
+        var hasAny = issueText || label || whyText || riskScore;
+        if (!hasAny) continue;
+
+        if (!label) {
+          return 'Please select a label (Hallucination, Inaccuracies, or Omission) for every row you started. Row ' + (i + 1) + ' is missing a label.';
+        }
+        if (!issueText && label.indexOf('Omission') === -1) {
+          return 'Please fill in the ChatEHR output for every row. Row ' + (i + 1) + ' is missing the ChatEHR output.';
+        }
+        if (label.indexOf('Inaccuracies') !== -1) {
+          if (!whyText) {
+            return 'For Inaccuracies, please fill in "Why was this wrong" column and explain was was inaccurate. Row ' + (i + 1) + ' is missing this.';
+          }
+        }
+        if (!riskScore) {
+          return 'Please select a Risk Score for every row. Row ' + (i + 1) + ' is missing the risk score.';
+        }
+      }
+      return null;
+    }
+
+    function saveAsJson() {
+      showValidation('');
+      var err = validateRowsForCopy() || validatePatientFamiliarity() || validateClinicalTask();
+      if (err) {
+        showValidation(err);
+        return;
+      }
+      const issues = collectIssues();
+      if (!issues || issues.length === 0) {
+        showValidation('Please add at least one issue. If the summary had no issues, use "No issues found, copy to clipboard" instead.');
+        return;
+      }
+      var clinicalTask = getClinicalTask();
+      const payload = {
+        savedAt: new Date().toISOString(),
+        patient_familiarity: getPatientFamiliarity(),
+        primary_clinical_task: clinicalTask.primary_clinical_task,
+        primary_clinical_task_other: clinicalTask.primary_clinical_task_other,
+        everythingIsFine: false,
+        issues: issues,
+        additional_feedback: getAdditionalFeedback() || null
+      };
+      const text = '#chatehreval\n' + JSON.stringify(payload, null, 2);
+      outputEl.textContent = text;
+      outputEl.classList.remove('fine');
+      navigator.clipboard.writeText(text).catch(function() {});
+      showCopyInstruction();
+    }
+
+    function saveEverythingFine() {
+      showValidation('');
+      var err = validatePatientFamiliarity() || validateClinicalTask();
+      if (err) {
+        showValidation(err);
+        return;
+      }
+      var clinicalTask = getClinicalTask();
+      const payload = {
+        savedAt: new Date().toISOString(),
+        patient_familiarity: getPatientFamiliarity(),
+        primary_clinical_task: clinicalTask.primary_clinical_task,
+        primary_clinical_task_other: clinicalTask.primary_clinical_task_other,
+        everythingIsFine: true,
+        issues: [],
+        additional_feedback: getAdditionalFeedback() || null
+      };
+      const text = '#chatehreval\n' + JSON.stringify(payload, null, 2);
+      outputEl.textContent = text;
+      outputEl.classList.add('fine');
+      navigator.clipboard.writeText(text).catch(function() {});
+      showCopyInstruction();
+    }
+
+    function toggleFAQ() {
+      const arrow = document.getElementById('faq-arrow');
+      const content = document.getElementById('faq-content');
+      const header = document.getElementById('faq-header');
+      if (!arrow || !content || !header) return;
+      arrow.classList.toggle('open');
+      content.classList.toggle('open');
+      header.setAttribute('aria-expanded', content.classList.contains('open'));
+    }
+
+    function toggleInstructions() {
+      const arrow = document.getElementById('instruct-arrow');
+      const content = document.getElementById('instruct-content');
+      const header = document.getElementById('instruct-header');
+      if (!arrow || !content || !header) return;
+      arrow.classList.toggle('open');
+      content.classList.toggle('open');
+      header.setAttribute('aria-expanded', content.classList.contains('open'));
+    }
+
+    function clearAll() {
+      showValidation('');
+      // Clear all table rows
+      const rows = tableBody.querySelectorAll('.table-row');
+      rows.forEach(function(row) {
+        const issueTextarea = row.querySelector('.col-issue textarea');
+        const whyTextarea = row.querySelector('.col-why textarea');
+        const riskSelect = row.querySelector('.col-risk select');
+        const radios = row.querySelectorAll('.col-label input[type="radio"]');
+        
+        var issueCell = row.querySelector('.col-issue');
+        if (issueCell) issueCell.classList.remove('hallucination-highlight');
+        if (issueTextarea) {
+          issueTextarea.value = '';
+          issueTextarea.style.height = 'auto';
+          issueTextarea.placeholder = 'Copy the chatEHR output here…';
+          issueTextarea.style.display = '';
+          issueTextarea.disabled = false;
+        }
+        var issueSkipLabel = row.querySelector('.col-issue .issue-skip-label');
+        if (issueSkipLabel) issueSkipLabel.style.display = 'none';
+        if (whyTextarea) {
+          whyTextarea.value = '';
+          whyTextarea.style.height = 'auto';
+          whyTextarea.style.display = '';
+          whyTextarea.disabled = false;
+          whyTextarea.placeholder = 'Why was this wrong…';
+        }
+        var whySkipLabel = row.querySelector('.col-why .why-skip-label');
+        if (whySkipLabel) whySkipLabel.style.display = 'none';
+        if (riskSelect) riskSelect.value = '';
+        radios.forEach(function(r) { r.checked = false; });
+      });
+
+      // Clear feedback textarea
+      const feedbackField = document.getElementById('feedback-field');
+      if (feedbackField) feedbackField.value = '';
+      // Clear patient familiarity dropdown
+      const patientFamiliarityField = document.getElementById('patient-familiarity-field');
+      if (patientFamiliarityField) patientFamiliarityField.value = '';
+      // Clear clinical task dropdown and other field
+      const clinicalTaskField = document.getElementById('clinical-task-field');
+      if (clinicalTaskField) clinicalTaskField.value = '';
+      const clinicalTaskOtherField = document.getElementById('clinical-task-other-field');
+      if (clinicalTaskOtherField) clinicalTaskOtherField.value = '';
+      const clinicalTaskOtherWrap = document.getElementById('clinical-task-other-wrap');
+      if (clinicalTaskOtherWrap) clinicalTaskOtherWrap.classList.remove('visible');
+
+      // Clear output
+      if (outputEl) {
+        outputEl.textContent = '';
+        outputEl.classList.remove('fine');
+      }
+    }
+
+    function updatePromptFullText() {
+      if (!promptSelectEl || !promptFullTextEl) return;
+      const value = promptSelectEl.value;
+      const text = PROMPT_TEXTS[value] || '';
+      promptFullTextEl.textContent = text;
+    }
+
+    function copySelectedPrompt() {
+      if (!promptSelectEl) return;
+      const value = promptSelectEl.value;
+      const text = PROMPT_TEXTS[value] || '';
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(function() {
+        alert('Prompt copied to clipboard. Paste it into ChatEHR to run the query.');
+      }).catch(function() {});
+    }
+
+    function init() {
+      tableBody = document.getElementById('table-body');
+      addRowBtn = document.getElementById('add-row');
+      saveJsonBtn = document.getElementById('save-json');
+      saveFineBtn = document.getElementById('save-fine');
+      refreshBtn = document.getElementById('refresh-btn');
+      outputEl = document.getElementById('output');
+      promptSelectEl = document.getElementById('prompt-select');
+      copyPromptBtnEl = document.getElementById('copy-prompt-btn');
+      promptFullTextEl = document.getElementById('prompt-full-text');
+      if (!tableBody || !addRowBtn || !saveJsonBtn || !saveFineBtn || !refreshBtn || !outputEl) return;
+      const faqHeader = document.getElementById('faq-header');
+      if (faqHeader) faqHeader.addEventListener('click', toggleFAQ);
+      const instructHeader = document.getElementById('instruct-header');
+      if (instructHeader) instructHeader.addEventListener('click', toggleInstructions);
+      const clinicalTaskSelect = document.getElementById('clinical-task-field');
+      const clinicalTaskOtherWrap = document.getElementById('clinical-task-other-wrap');
+      if (clinicalTaskSelect && clinicalTaskOtherWrap) {
+        clinicalTaskSelect.addEventListener('change', function() {
+          clinicalTaskOtherWrap.classList.toggle('visible', clinicalTaskSelect.value === 'other');
+          if (clinicalTaskSelect.value !== 'other') {
+            var otherInput = document.getElementById('clinical-task-other-field');
+            if (otherInput) otherInput.value = '';
+          }
+        });
+      }
+      addRowBtn.addEventListener('click', addRow);
+      saveJsonBtn.addEventListener('click', saveAsJson);
+      saveFineBtn.addEventListener('click', saveEverythingFine);
+      refreshBtn.addEventListener('click', clearAll);
+      if (copyPromptBtnEl) {
+        copyPromptBtnEl.addEventListener('click', copySelectedPrompt);
+      }
+      if (promptSelectEl && promptFullTextEl) {
+        promptSelectEl.addEventListener('change', updatePromptFullText);
+        updatePromptFullText();
+      }
+      addRow();
+      addRow();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

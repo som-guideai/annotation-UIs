@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tumor Board Summary Evaluation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1e293b;
+      background: linear-gradient(160deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    .header {
+      margin-bottom: 1.75rem;
+      padding: 1.75rem 2rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .header h1 {
+      margin: 0 0 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .header p { margin: 0 0 0.5rem; color: #475569; }
+    .header .browser-note {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: #fef3c7;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #92400e;
+    }
+    .patient-section {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 1px solid rgba(71, 85, 105, 0.8);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .patient-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .patient-field-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .patient-field-group label {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #f8fafc;
+      white-space: nowrap;
+    }
+    .patient-field-group input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      background: #fff;
+      color: #0f172a;
+    }
+    .patient-field-group input[type="text"] { min-width: 180px; }
+    .patient-field-group input[type="date"] { min-width: 160px; }
+    .csv-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .csv-status {
+      font-size: 0.9rem;
+      color: #475569;
+      flex: 1;
+    }
+    .csv-status .filename {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .csv-status.no-file { color: #94a3b8; font-style: italic; }
+    .definitions-section {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .definitions-section summary {
+      cursor: pointer;
+      list-style: revert;
+    }
+    .definitions-section summary h3 {
+      display: inline;
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .definitions-section h4 {
+      margin: 1rem 0 0.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .definitions-section p {
+      margin: 0 0 0.5rem;
+      color: #475569;
+      font-size: 0.9rem;
+    }
+    .definitions-section ul {
+      margin: 0.25rem 0 0 1.25rem;
+      padding: 0;
+    }
+    .definitions-section li {
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+      color: #475569;
+      font-size: 0.9rem;
+    }
+    .columns-container {
+      margin-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: 0.8fr 3fr 2fr 160px 44px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.05);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .table-header {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      gap: 0;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .table-header > * {
+      padding: 0.75rem 0.875rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .table-header > *:last-child { border-right: none; }
+    .table-body { display: contents; }
+    .table-row {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      gap: 0;
+      align-items: start;
+      border-bottom: 1px solid #f1f5f9;
+      min-height: 4rem;
+      transition: background 0.15s ease;
+    }
+    .table-row:hover { background: #fafbfc; }
+    .table-row:last-child { border-bottom: none; }
+    .table-row > * {
+      padding: 0.75rem 0.875rem;
+      border-right: 1px solid #f1f5f9;
+    }
+    .table-row > *:last-child { border-right: none; }
+    .col-issue textarea,
+    .col-why textarea {
+      width: 100%;
+      min-height: 5rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .col-issue textarea:focus,
+    .col-why textarea:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .col-why .why-skip-label,
+    .col-issue .issue-skip-label {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    .col-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      justify-content: center;
+    }
+    .col-label label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 500;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #475569;
+    }
+    .col-label label:hover { color: #0f172a; }
+    .col-label input[type="radio"] {
+      width: 0.95rem;
+      height: 0.95rem;
+      accent-color: #0ea5e9;
+      cursor: pointer;
+    }
+    .col-risk select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: #fff;
+      cursor: pointer;
+      color: #334155;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .col-risk select:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .col-actions { display: flex; align-items: center; justify-content: center; }
+    .btn-remove {
+      padding: 0.4rem;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      line-height: 1;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .btn-remove:hover { background: #fef2f2; color: #dc2626; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      font-family: inherit;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: #fff;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .btn-primary {
+      background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35); }
+    .btn-success {
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+    .btn-success:hover { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); }
+    .btn-warning {
+      background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+      color: #fff;
+      border: none;
+      box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+    }
+    .btn-warning:hover { box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35); }
+    .feedback-section {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .feedback-section h3 {
+      margin: 0 0 0.75rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .feedback-field {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .feedback-field:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .feedback-field::placeholder { color: #94a3b8; }
+    .validation-message {
+      margin-bottom: 1rem;
+      padding: 0.875rem 1rem;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #b91c1c;
+      font-size: 0.9375rem;
+    }
+    .validation-message:empty,
+    .validation-message[hidden] { display: none !important; }
+    .success-message {
+      margin-bottom: 1rem;
+      padding: 0.875rem 1rem;
+      background: #ecfdf5;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      color: #065f46;
+      font-size: 0.9375rem;
+    }
+    .success-message[hidden] { display: none !important; }
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    @media (max-width: 720px) {
+      .columns-container {
+        grid-template-columns: 1fr 1fr;
+      }
+      .table-header .col-issue { grid-column: 1 / -1; }
+      .table-header .col-label { grid-column: 1; }
+      .table-header .col-why { grid-column: 2; }
+      .table-header .col-risk { grid-column: 1; }
+      .table-header .col-actions { grid-column: 1 / -1; }
+      .table-row .col-issue { grid-column: 1 / -1; }
+      .table-row .col-label { grid-column: 1; }
+      .table-row .col-why { grid-column: 2; }
+      .table-row .col-risk { grid-column: 1; }
+      .table-row .col-actions { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="header">
+      <h1>Tumor Board Summary Evaluation</h1>
+      <p>Annotate AI-generated tumor board summaries. Identify hallucinations, inaccuracies, and omissions, then save directly to a CSV file.</p>
+      <div class="browser-note">This tool requires Chrome or Edge (uses the File System Access API to write to CSV).</div>
+    </div>
+
+    <div class="csv-section">
+      <button type="button" id="open-csv-btn" class="btn btn-secondary">Open existing CSV</button>
+      <button type="button" id="create-csv-btn" class="btn btn-secondary">Create new CSV</button>
+      <div id="csv-status" class="csv-status no-file">No CSV file selected</div>
+    </div>
+
+    <div class="patient-section">
+      <div class="patient-row">
+        <div class="patient-field-group">
+          <label for="patient-mrn">Patient MRN:</label>
+          <input type="text" id="patient-mrn" placeholder="Enter MRN…" />
+        </div>
+        <div class="patient-field-group">
+          <label for="summary-date">Summary generation date:</label>
+          <input type="date" id="summary-date" />
+        </div>
+      </div>
+    </div>
+
+    <details class="definitions-section" open>
+      <summary><h3>Definitions</h3></summary>
+
+      <h4>Issue Types</h4>
+      <ul>
+        <li><strong>Hallucination:</strong> Information that is not supported by the chart or the patient's medical history.</li>
+        <li><strong>Inaccuracy:</strong> Information that is incorrect, contradicts the chart, or misrepresents certainty (e.g., "probable diagnosis" became "definite").</li>
+        <li><strong>Omission:</strong> Information that should be in the summary and is supported by the chart or the patient's medical history.</li>
+      </ul>
+
+      <h4>Risk Scores</h4>
+      <p>Response options are adapted from the Agency for Healthcare Research and Quality (AHRQ) harm scale. Risk scoring is inherently subjective — please use your best clinical judgment.</p>
+      <ul>
+        <li><strong>Level 1 (No harm):</strong> The output contains no clinically meaningful errors that would affect patient care.</li>
+        <li><strong>Level 2 (Mild harm):</strong> Bodily or psychological injury resulting in minimal symptoms or loss of function, or injury limited to additional treatment, monitoring, and/or increased length of stay.</li>
+        <li><strong>Level 3 (Moderate harm):</strong> Bodily or psychological injury, adversely affecting functional ability or quality of life, but not at the level of severe harm.</li>
+        <li><strong>Level 4 (Severe harm):</strong> Bodily or psychological injury, including pain or disfigurement, that interferes substantially with functional ability or quality of life.</li>
+        <li><strong>Level 5 (Death):</strong> The errors could lead to patient death.</li>
+      </ul>
+    </details>
+
+    <div class="columns-container" role="table">
+      <div class="table-header" role="row">
+        <div class="col-label" role="columnheader">Issue type</div>
+        <div class="col-issue" role="columnheader">AI output</div>
+        <div class="col-why" role="columnheader">Why is this wrong</div>
+        <div class="col-risk" role="columnheader">Risk Score</div>
+        <div class="col-actions" role="columnheader"></div>
+      </div>
+      <div id="table-body" class="table-body"></div>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="add-row" class="btn btn-secondary">+ Add issue</button>
+    </div>
+
+    <div class="feedback-section">
+      <h3>Any other feedback (optional)</h3>
+      <textarea id="feedback-field" class="feedback-field" placeholder="Share any additional observations or comments…" aria-label="Any other feedback"></textarea>
+    </div>
+
+    <div id="validation-message" class="validation-message" role="alert" aria-live="assertive" hidden></div>
+    <div id="success-message" class="success-message" role="status" aria-live="polite" hidden></div>
+
+    <div class="action-buttons">
+      <button type="button" id="save-csv-btn" class="btn btn-primary">Save to CSV</button>
+      <button type="button" id="save-fine-btn" class="btn btn-success">No issues found, save to CSV</button>
+      <button type="button" id="clear-btn" class="btn btn-warning">Clear for next patient</button>
+    </div>
+
+    <p style="margin-top: 2rem; padding: 1rem 1.25rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #334155; font-size: 0.9rem;">
+      When you have finished annotating all AI summaries, please <strong>Secure email</strong> the resulting final .csv file containing your annotations to
+      <a href="mailto:TKeyes@stanfordhealthcare.org">TKeyes@stanfordhealthcare.org</a> and
+      <a href="mailto:grolleau@stanford.edu">grolleau@stanford.edu</a>
+      (e.g., use the subject line "Secure: tumor summaries annotations").
+    </p>
+  </main>
+
+  <script>
+    const LABELS = ['Hallucination', 'Inaccuracy', 'Omission'];
+    const CSV_HEADERS = [
+      'annotation_timestamp',
+      'patient_mrn',
+      'summary_generation_date',
+      'everything_is_fine',
+      'inaccuracies',
+      'inaccuracies_whywrong',
+      'inaccuracies_risk',
+      'hallucinations',
+      'hallucinations_risk',
+      'omissions',
+      'omissions_risk',
+      'additional_feedback'
+    ];
+
+    let fileHandle = null;
+    let tableBody, validationEl, successEl, csvStatusEl;
+
+    function showValidation(msg) {
+      if (!validationEl) validationEl = document.getElementById('validation-message');
+      validationEl.textContent = msg || '';
+      validationEl.hidden = !msg;
+      if (msg) validationEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (msg) hideSuccess();
+    }
+
+    function showSuccess(msg) {
+      if (!successEl) successEl = document.getElementById('success-message');
+      successEl.textContent = msg || '';
+      successEl.hidden = !msg;
+    }
+
+    function hideSuccess() {
+      if (!successEl) successEl = document.getElementById('success-message');
+      successEl.hidden = true;
+    }
+
+    function updateCsvStatus() {
+      if (!csvStatusEl) csvStatusEl = document.getElementById('csv-status');
+      if (fileHandle) {
+        csvStatusEl.className = 'csv-status';
+        csvStatusEl.innerHTML = 'CSV file: <span class="filename">' + escapeHtml(fileHandle.name) + '</span>';
+      } else {
+        csvStatusEl.className = 'csv-status no-file';
+        csvStatusEl.textContent = 'No CSV file selected';
+      }
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function csvEscape(value) {
+      var str = String(value == null ? '' : value);
+      if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.max(40, textarea.scrollHeight) + 'px';
+    }
+
+    async function openCsv() {
+      try {
+        var [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'CSV files', accept: { 'text/csv': ['.csv'] } }],
+          multiple: false
+        });
+        fileHandle = handle;
+        updateCsvStatus();
+        showSuccess('Opened: ' + handle.name);
+      } catch (e) {
+        if (e.name !== 'AbortError') showValidation('Failed to open file: ' + e.message);
+      }
+    }
+
+    async function createCsv() {
+      try {
+        var handle = await window.showSaveFilePicker({
+          suggestedName: 'tumor_board_annotations.csv',
+          types: [{ description: 'CSV files', accept: { 'text/csv': ['.csv'] } }]
+        });
+        fileHandle = handle;
+        var writable = await handle.createWritable();
+        await writable.write(CSV_HEADERS.map(csvEscape).join(',') + '\n');
+        await writable.close();
+        updateCsvStatus();
+        showSuccess('Created: ' + handle.name + ' (with headers)');
+      } catch (e) {
+        if (e.name !== 'AbortError') showValidation('Failed to create file: ' + e.message);
+      }
+    }
+
+    function createRow(index) {
+      var row = document.createElement('div');
+      row.className = 'table-row';
+      row.dataset.index = String(index);
+
+      var labelCell = document.createElement('div');
+      labelCell.className = 'col-label';
+      var radioName = 'label-row-' + index + '-' + Date.now();
+      LABELS.forEach(function(name) {
+        var lbl = document.createElement('label');
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = radioName;
+        radio.value = name;
+        lbl.appendChild(radio);
+        lbl.appendChild(document.createTextNode(name));
+        labelCell.appendChild(lbl);
+      });
+
+      var issueCell = document.createElement('div');
+      issueCell.className = 'col-issue';
+      var issueInput = document.createElement('textarea');
+      issueInput.placeholder = 'Paste the AI output here…';
+      issueInput.setAttribute('aria-label', 'AI output');
+      issueInput.setAttribute('rows', '1');
+      issueInput.addEventListener('input', function() { autoResizeTextarea(this); });
+      var issueSkipLabel = document.createElement('span');
+      issueSkipLabel.className = 'issue-skip-label';
+      issueSkipLabel.textContent = '—';
+      issueSkipLabel.style.display = 'none';
+      issueCell.appendChild(issueInput);
+      issueCell.appendChild(issueSkipLabel);
+
+      var whyCell = document.createElement('div');
+      whyCell.className = 'col-why';
+      var whyInput = document.createElement('textarea');
+      whyInput.placeholder = 'Why is this wrong…';
+      whyInput.setAttribute('aria-label', 'Why is this wrong');
+      whyInput.setAttribute('rows', '1');
+      whyInput.addEventListener('input', function() { autoResizeTextarea(this); });
+      var whySkipLabel = document.createElement('span');
+      whySkipLabel.className = 'why-skip-label';
+      whySkipLabel.textContent = '—';
+      whySkipLabel.style.display = 'none';
+      whyCell.appendChild(whyInput);
+      whyCell.appendChild(whySkipLabel);
+
+      function updateFieldVisibility() {
+        var checked = labelCell.querySelector('input[type="radio"]:checked');
+        if (!checked) {
+          issueInput.style.display = ''; issueInput.disabled = false;
+          issueInput.placeholder = 'Paste the AI output here…';
+          issueSkipLabel.style.display = 'none';
+          whyInput.style.display = ''; whyInput.disabled = false;
+          whyInput.placeholder = 'Why is this wrong…';
+          whySkipLabel.style.display = 'none';
+          return;
+        }
+        var v = checked.value;
+        if (v === 'Hallucination') {
+          issueInput.style.display = ''; issueInput.disabled = false;
+          issueInput.placeholder = 'Paste the hallucinated statement from the AI summary…';
+          issueSkipLabel.style.display = 'none';
+          whyInput.value = ''; whyInput.style.display = 'none'; whyInput.disabled = true;
+          whySkipLabel.style.display = 'inline';
+        } else if (v === 'Omission') {
+          issueInput.value = ''; issueInput.style.display = 'none'; issueInput.disabled = true;
+          issueSkipLabel.style.display = 'inline';
+          whyInput.style.display = ''; whyInput.disabled = false;
+          whyInput.placeholder = 'Describe what was documented in the chart but missing from the summary…';
+          whySkipLabel.style.display = 'none';
+        } else {
+          issueInput.style.display = ''; issueInput.disabled = false;
+          issueInput.placeholder = 'Paste the inaccurate statement from the AI summary…';
+          issueSkipLabel.style.display = 'none';
+          whyInput.style.display = ''; whyInput.disabled = false;
+          whyInput.placeholder = 'Describe what was inaccurate…';
+          whySkipLabel.style.display = 'none';
+        }
+      }
+      labelCell.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', updateFieldVisibility);
+      });
+
+      var riskCell = document.createElement('div');
+      riskCell.className = 'col-risk';
+      var riskSelect = document.createElement('select');
+      riskSelect.setAttribute('aria-label', 'Risk Score');
+      riskSelect.innerHTML = '<option value="">-- Select --</option><option value="1">Level 1 (No harm)</option><option value="2">Level 2 (Mild)</option><option value="3">Level 3 (Moderate)</option><option value="4">Level 4 (Severe)</option><option value="5">Level 5 (Death)</option>';
+      riskCell.appendChild(riskSelect);
+
+      var actionsCell = document.createElement('div');
+      actionsCell.className = 'col-actions';
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn-remove';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.setAttribute('aria-label', 'Remove this issue');
+      removeBtn.addEventListener('click', function() { row.remove(); });
+      actionsCell.appendChild(removeBtn);
+
+      row.appendChild(labelCell);
+      row.appendChild(issueCell);
+      row.appendChild(whyCell);
+      row.appendChild(riskCell);
+      row.appendChild(actionsCell);
+      return row;
+    }
+
+    function addRow() {
+      var count = tableBody.querySelectorAll('.table-row').length;
+      tableBody.appendChild(createRow(count));
+    }
+
+    function collectIssues() {
+      var inaccuracies = [], inaccuracies_why = [], inaccuracies_risk = [];
+      var hallucinations = [], hallucinations_risk = [];
+      var omissions = [], omissions_risk = [];
+
+      var rows = tableBody.querySelectorAll('.table-row');
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var labelRadio = row.querySelector('.col-label input[type="radio"]:checked');
+        if (!labelRadio) continue;
+        var type = labelRadio.value;
+        var issueText = row.querySelector('.col-issue textarea').value.trim();
+        var whyText = row.querySelector('.col-why textarea').value.trim();
+        var riskVal = row.querySelector('.col-risk select').value;
+
+        if (type === 'Inaccuracy') {
+          inaccuracies.push(issueText);
+          inaccuracies_why.push(whyText);
+          inaccuracies_risk.push(parseInt(riskVal) || 0);
+        } else if (type === 'Hallucination') {
+          hallucinations.push(issueText);
+          hallucinations_risk.push(parseInt(riskVal) || 0);
+        } else if (type === 'Omission') {
+          omissions.push(whyText);
+          omissions_risk.push(parseInt(riskVal) || 0);
+        }
+      }
+      return { inaccuracies, inaccuracies_why, inaccuracies_risk, hallucinations, hallucinations_risk, omissions, omissions_risk };
+    }
+
+    function validateForSave() {
+      if (!fileHandle) return 'Please open or create a CSV file first.';
+      var mrn = document.getElementById('patient-mrn').value.trim();
+      if (!mrn) return 'Please enter the Patient MRN.';
+      var date = document.getElementById('summary-date').value;
+      if (!date) return 'Please enter the Summary generation date.';
+      return null;
+    }
+
+    function validateRows() {
+      var rows = tableBody.querySelectorAll('.table-row');
+      var hasAnyIssue = false;
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var labelRadio = row.querySelector('.col-label input[type="radio"]:checked');
+        var issueText = row.querySelector('.col-issue textarea').value.trim();
+        var whyText = row.querySelector('.col-why textarea').value.trim();
+        var riskVal = row.querySelector('.col-risk select').value;
+
+        var hasContent = labelRadio || issueText || whyText || riskVal;
+        if (!hasContent) continue;
+        hasAnyIssue = true;
+
+        if (!labelRadio) return 'Row ' + (i + 1) + ': please select an issue type.';
+        if (!riskVal) return 'Row ' + (i + 1) + ': please select a risk score.';
+
+        var type = labelRadio.value;
+        if (type === 'Hallucination' && !issueText) return 'Row ' + (i + 1) + ': please paste the hallucinated AI output.';
+        if (type === 'Inaccuracy' && !issueText) return 'Row ' + (i + 1) + ': please paste the inaccurate AI output.';
+        if (type === 'Inaccuracy' && !whyText) return 'Row ' + (i + 1) + ': please explain what was inaccurate.';
+        if (type === 'Omission' && !whyText) return 'Row ' + (i + 1) + ': please describe the omission.';
+      }
+      if (!hasAnyIssue) return 'Please add at least one issue. If no issues were found, use "No issues found, save to CSV".';
+      return null;
+    }
+
+    function buildCsvRow(everythingIsFine) {
+      var mrn = document.getElementById('patient-mrn').value.trim();
+      var date = document.getElementById('summary-date').value;
+      var feedback = document.getElementById('feedback-field').value.trim();
+      var issues = collectIssues();
+
+      var row = [
+        new Date().toISOString(),
+        mrn,
+        date,
+        everythingIsFine ? 'true' : 'false',
+        JSON.stringify(issues.inaccuracies),
+        JSON.stringify(issues.inaccuracies_why),
+        JSON.stringify(issues.inaccuracies_risk),
+        JSON.stringify(issues.hallucinations),
+        JSON.stringify(issues.hallucinations_risk),
+        JSON.stringify(issues.omissions),
+        JSON.stringify(issues.omissions_risk),
+        feedback
+      ];
+      return row.map(csvEscape).join(',');
+    }
+
+    async function appendRowToFile(csvRow) {
+      try {
+        var file = await fileHandle.getFile();
+        var existingContent = await file.text();
+        var writable = await fileHandle.createWritable();
+        var newContent = existingContent;
+        if (!newContent.endsWith('\n')) newContent += '\n';
+        newContent += csvRow + '\n';
+        await writable.write(newContent);
+        await writable.close();
+        return true;
+      } catch (e) {
+        showValidation('Failed to write to CSV: ' + e.message);
+        return false;
+      }
+    }
+
+    async function saveToCsv() {
+      showValidation('');
+      hideSuccess();
+      var err = validateForSave() || validateRows();
+      if (err) { showValidation(err); return; }
+      var row = buildCsvRow(false);
+      if (await appendRowToFile(row)) {
+        var mrn = document.getElementById('patient-mrn').value.trim();
+        var date = document.getElementById('summary-date').value;
+        showSuccess(mrn + ' (' + date + ') — annotation saved to ' + fileHandle.name);
+      }
+    }
+
+    async function saveNoIssues() {
+      showValidation('');
+      hideSuccess();
+      var err = validateForSave();
+      if (err) { showValidation(err); return; }
+      var row = buildCsvRow(true);
+      if (await appendRowToFile(row)) {
+        var mrn = document.getElementById('patient-mrn').value.trim();
+        var date = document.getElementById('summary-date').value;
+        showSuccess(mrn + ' (' + date + ') — annotation saved to ' + fileHandle.name);
+      }
+    }
+
+    function clearAll() {
+      showValidation('');
+      hideSuccess();
+      document.getElementById('patient-mrn').value = '';
+      document.getElementById('summary-date').value = '';
+      document.getElementById('feedback-field').value = '';
+      var rows = tableBody.querySelectorAll('.table-row');
+      rows.forEach(function(row) {
+        var issueTA = row.querySelector('.col-issue textarea');
+        var whyTA = row.querySelector('.col-why textarea');
+        var riskSel = row.querySelector('.col-risk select');
+        var radios = row.querySelectorAll('.col-label input[type="radio"]');
+        if (issueTA) { issueTA.value = ''; issueTA.style.height = 'auto'; issueTA.style.display = ''; issueTA.disabled = false; issueTA.placeholder = 'Paste the AI output here…'; }
+        if (whyTA) { whyTA.value = ''; whyTA.style.height = 'auto'; whyTA.style.display = ''; whyTA.disabled = false; whyTA.placeholder = 'Why is this wrong…'; }
+        if (riskSel) riskSel.value = '';
+        radios.forEach(function(r) { r.checked = false; });
+        var issueSkip = row.querySelector('.col-issue .issue-skip-label');
+        var whySkip = row.querySelector('.col-why .why-skip-label');
+        if (issueSkip) issueSkip.style.display = 'none';
+        if (whySkip) whySkip.style.display = 'none';
+      });
+    }
+
+
+    function init() {
+      tableBody = document.getElementById('table-body');
+      validationEl = document.getElementById('validation-message');
+      successEl = document.getElementById('success-message');
+      csvStatusEl = document.getElementById('csv-status');
+
+      document.getElementById('open-csv-btn').addEventListener('click', openCsv);
+      document.getElementById('create-csv-btn').addEventListener('click', createCsv);
+      document.getElementById('add-row').addEventListener('click', addRow);
+      document.getElementById('save-csv-btn').addEventListener('click', saveToCsv);
+      document.getElementById('save-fine-btn').addEventListener('click', saveNoIssues);
+      document.getElementById('clear-btn').addEventListener('click', clearAll);
+
+      addRow();
+      addRow();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

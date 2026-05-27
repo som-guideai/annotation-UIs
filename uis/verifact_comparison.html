@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VeriFactB Comparison Annotation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1e293b;
+      background: linear-gradient(160deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .header h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .header p { margin: 0 0 0.5rem; color: #475569; }
+    .browser-note {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: #fef3c7;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #92400e;
+    }
+
+    /* File management */
+    .file-section { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .file-section .file-row { display: flex; align-items: center; gap: 0.75rem; }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .file-status { font-size: 0.8rem; color: #64748b; font-style: italic; }
+    .file-status.active { color: #059669; font-style: normal; font-weight: 500; }
+
+    /* Row selector */
+    .row-selector-list {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-top: 0.75rem;
+    }
+    .row-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.1s;
+    }
+    .row-item:last-child { border-bottom: none; }
+    .row-item:hover { background: #f8fafc; }
+    .row-item.selected { background: #eff6ff; border-left: 3px solid #3b82f6; }
+    .row-item .hash { font-family: monospace; font-size: 0.8rem; color: #64748b; min-width: 80px; flex-shrink: 0; }
+    .row-item .preview { font-size: 0.8rem; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; flex-shrink: 1; }
+    .row-item .gen-date { font-size: 0.7rem; color: #64748b; white-space: nowrap; flex-shrink: 0; }
+    .row-item .model-tag { font-size: 0.65rem; font-weight: 600; margin-left: 0.3rem; }
+    .model-tag.after-upgrade { color: #059669; }
+    .model-tag.before-upgrade { color: #dc2626; }
+    .row-item .badge { margin-left: auto; flex-shrink: 0; }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .badge-pending { background: #f1f5f9; color: #64748b; }
+    .badge-done { background: #d1fae5; color: #065f46; }
+    .row-counter { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; }
+
+    /* Context section */
+    .context-section { margin-top: 0.5rem; }
+    .context-block {
+      margin-bottom: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .context-label {
+      padding: 0.5rem 1rem;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #64748b;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .context-preview {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .context-section details {
+      border-top: 1px solid #e2e8f0;
+    }
+    .context-section summary {
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    .context-section summary:hover { color: #2563eb; }
+    .context-section .context-content {
+      padding: 0.75rem 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #fafafa;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    /* Comparison area */
+    .comparison-container {
+      position: relative;
+      margin-top: 1rem;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .panel-title.human { border-bottom-color: #f59e0b; }
+    .panel-title.verifact { border-bottom-color: #8b5cf6; }
+
+    /* Item cards */
+    .item-card {
+      position: relative;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.6rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      font-size: 0.85rem;
+    }
+    .item-card:hover { border-color: #94a3b8; }
+    .item-card.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .item-card.linked {
+      border-left: 4px solid #0ea5e9;
+    }
+    .item-card .type-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .type-badge.inaccuracy { background: #fef3c7; color: #92400e; }
+    .type-badge.hallucination { background: #fce7f3; color: #9d174d; }
+    .type-badge.feedback { background: #e0e7ff; color: #3730a3; }
+    .item-card .item-text { color: #334155; line-height: 1.5; }
+    .item-card .item-meta { margin-top: 0.4rem; font-size: 0.75rem; color: #64748b; }
+    .item-card .item-meta .risk-tag {
+      display: inline-block;
+      background: #f1f5f9;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Risk summary card */
+    .risk-summary {
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+      font-size: 0.85rem;
+    }
+    .risk-summary .risk-level {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .risk-summary .risk-expl { color: #475569; margin-top: 0.3rem; }
+
+    /* SVG overlay */
+    .edge-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .edge-svg path.edge-line {
+      stroke: #0ea5e9;
+      stroke-width: 2;
+      fill: none;
+      transition: stroke 0.15s;
+    }
+    .edge-svg path.edge-hit {
+      stroke: transparent;
+      stroke-width: 14;
+      fill: none;
+      pointer-events: stroke;
+      cursor: pointer;
+    }
+    .edge-svg path.edge-hit:hover + path.edge-line,
+    .edge-svg g:hover path.edge-line {
+      stroke: #ef4444;
+      stroke-width: 3;
+    }
+
+    /* Instructions */
+    .instructions {
+      margin-top: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #0c4a6e;
+    }
+
+    /* Messages */
+    .msg { padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.85rem; margin-top: 0.75rem; }
+    .msg-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .msg-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .msg[hidden] { display: none; }
+
+    /* Category section headers */
+    .category-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.4rem 0.6rem;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+    }
+    .category-header.hallucination {
+      background: #fce7f3;
+      color: #9d174d;
+    }
+    .category-header.inaccuracy {
+      background: #fef3c7;
+      color: #92400e;
+      margin-top: 1rem;
+    }
+    .annotator-name {
+      font-size: 0.8rem;
+      color: #475569;
+      margin-bottom: 0.75rem;
+      font-style: italic;
+    }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <!-- Header -->
+    <div class="card header">
+      <h1>VeriFactB Comparison Annotation</h1>
+      <p>Compare human clinician annotations with VeriFactB automated predictions. Draw edges to map matching findings.</p>
+      <div class="browser-note">Requires Chrome or Edge (File System Access API).</div>
+    </div>
+
+    <!-- File management -->
+    <div class="card">
+      <div class="file-section">
+        <div class="file-row">
+          <button class="btn btn-primary" onclick="loadInputCsv()">Load eval_df.csv</button>
+          <span id="input-status" class="file-status">No file loaded</span>
+        </div>
+        <div class="file-row">
+          <button class="btn btn-secondary" onclick="openOutputCsv()">Open annotations CSV</button>
+          <button class="btn btn-secondary" onclick="createOutputCsv()">Create new</button>
+          <span id="output-status" class="file-status">No file selected</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row selector -->
+    <div class="card" id="row-selector-card" hidden>
+      <strong style="font-size:0.9rem;">Select a row to annotate:</strong>
+      <div id="row-counter" class="row-counter"></div>
+      <div class="row-selector-list" id="row-selector-list"></div>
+    </div>
+
+    <!-- Context section -->
+    <div class="card" id="context-card" hidden>
+      <div class="context-section">
+        <div class="context-block">
+          <div class="context-label">Inputs provided to the AI</div>
+          <div class="context-preview" id="ctx-query-preview"></div>
+          <details>
+            <summary>Show full content</summary>
+            <div class="context-content" id="ctx-query"></div>
+          </details>
+        </div>
+        <div class="context-block">
+          <div class="context-label">User prompt</div>
+          <div class="context-preview" id="ctx-prompt-preview"></div>
+          <details>
+            <summary>Show full content</summary>
+            <div class="context-content" id="ctx-prompt"></div>
+          </details>
+        </div>
+        <div class="context-block">
+          <div class="context-label">AI output (summary)</div>
+          <div class="context-preview" id="ctx-output-preview"></div>
+          <details>
+            <summary>Show full content</summary>
+            <div class="context-content" id="ctx-output"></div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison area -->
+    <div class="card" id="comparison-card" hidden>
+      <div class="instructions">
+        <strong>Your task:</strong> Identify which findings reported by the human annotator (left) and by VeriFactB (right)
+        refer to the same underlying issue in the AI output. Click a human item, then click a VeriFactB item to link them.
+        An item may link to multiple items on the other side, or remain unlinked if there is no match.
+        Cross-category links are allowed (e.g., a human hallucination can match a VeriFactB inaccuracy).
+        Click an existing edge line (turns red on hover) to remove it.
+      </div>
+      <div class="comparison-container" id="comparison-container">
+        <svg class="edge-svg" id="edge-svg"></svg>
+        <div class="comparison-grid">
+          <div>
+            <div class="panel-title human">Human Annotations</div>
+            <div id="human-panel"></div>
+          </div>
+          <div>
+            <div class="panel-title verifact">VeriFactB Predictions</div>
+            <div id="verifact-panel"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div style="margin-top:1rem; display:flex; gap:0.75rem; align-items:center;">
+        <button class="btn btn-success" onclick="saveAnnotation()">Save annotation</button>
+        <button class="btn btn-secondary" onclick="clearEdges()">Clear all edges</button>
+        <button class="btn btn-primary" onclick="annotateNext()" style="margin-left:auto;">Annotate next patient</button>
+      </div>
+      <div id="msg-validation" class="msg msg-error" hidden></div>
+      <div id="msg-success" class="msg msg-success" hidden></div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="card" id="feedback-card" hidden>
+      <strong style="font-size:0.9rem;">Any other feedback (optional)</strong>
+      <textarea id="feedback-field" style="width:100%; min-height:80px; margin-top:0.5rem; padding:0.75rem 1rem; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem; font-family:inherit; resize:vertical;" placeholder="Share any additional observations or comments about this row..."></textarea>
+    </div>
+
+    <p style="margin-top: 2rem; padding: 1rem 1.25rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #334155; font-size: 0.9rem;">
+      When you have finished annotating all rows, please <strong>Secure email</strong> the resulting final .csv file containing your annotations to
+      <a href="mailto:TKeyes@stanfordhealthcare.org">TKeyes@stanfordhealthcare.org</a> and
+      <a href="mailto:grolleau@stanford.edu">grolleau@stanford.edu</a>
+      (e.g., use the subject line "Secure: VeriFactB comparison annotations").
+    </p>
+  </main>
+
+  <script>
+    // --- State ---
+    let inputFileHandle = null;
+    let outputFileHandle = null;
+    let inputRows = [];
+    let annotatedHashes = {};
+    let currentRowIndex = null;
+    let currentEdges = [];
+    let selectedHumanItem = null;
+
+    // --- CSV Parsing (state machine for quoted fields) ---
+    function parseCsv(text) {
+      var rows = [];
+      var row = [];
+      var field = '';
+      var inQuotes = false;
+      for (var i = 0; i < text.length; i++) {
+        var ch = text[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (i + 1 < text.length && text[i + 1] === '"') {
+              field += '"'; i++;
+            } else {
+              inQuotes = false;
+            }
+          } else {
+            field += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+          } else if (ch === ',') {
+            row.push(field); field = '';
+          } else if (ch === '\n' || (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n')) {
+            row.push(field); field = '';
+            if (row.length > 1 || row[0] !== '') rows.push(row);
+            row = [];
+            if (ch === '\r') i++;
+          } else if (ch === '\r') {
+            row.push(field); field = '';
+            if (row.length > 1 || row[0] !== '') rows.push(row);
+            row = [];
+          } else {
+            field += ch;
+          }
+        }
+      }
+      if (field || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    function csvToObjects(text) {
+      var parsed = parseCsv(text);
+      if (parsed.length < 2) return [];
+      var headers = parsed[0];
+      var objects = [];
+      for (var i = 1; i < parsed.length; i++) {
+        var obj = {};
+        for (var j = 0; j < headers.length; j++) {
+          obj[headers[j]] = (j < parsed[i].length) ? parsed[i][j] : '';
+        }
+        objects.push(obj);
+      }
+      return objects;
+    }
+
+    function csvEscape(value) {
+      var str = String(value == null ? '' : value);
+      if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    // --- Field Parsers ---
+    function parsePythonList(raw) {
+      if (!raw || raw.trim() === '[]') return [];
+      // Try JSON first
+      try { var j = JSON.parse(raw); if (Array.isArray(j)) return j; } catch(e) {}
+      // Match single-quoted or double-quoted strings (Python/numpy repr can mix both)
+      var items = [];
+      var regex = /'((?:[^'\\]|\\.)*?)'|"((?:[^"\\]|\\.)*?)"/gs;
+      var match;
+      while ((match = regex.exec(raw)) !== null) {
+        var val = match[1] !== undefined ? match[1] : match[2];
+        items.push(val.replace(/\\'/g, "'").replace(/\\"/g, '"'));
+      }
+      return items;
+    }
+
+    function parseIntList(raw) {
+      if (!raw || raw.trim() === '[]') return [];
+      var inner = raw.replace(/[\[\]]/g, '').trim();
+      if (!inner) return [];
+      return inner.split(/\s+/).map(Number);
+    }
+
+    function parseJsonList(raw) {
+      if (!raw || raw.trim() === '[]') return [];
+      try { return JSON.parse(raw); } catch(e) {
+        return parsePythonList(raw);
+      }
+    }
+
+    // --- File I/O ---
+    async function loadInputCsv() {
+      try {
+        var [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'CSV files', accept: { 'text/csv': ['.csv'] } }],
+          multiple: false
+        });
+        inputFileHandle = handle;
+        var file = await handle.getFile();
+        var text = await file.text();
+        inputRows = csvToObjects(text);
+        document.getElementById('input-status').textContent = handle.name + ' (' + inputRows.length + ' rows)';
+        document.getElementById('input-status').className = 'file-status active';
+        renderRowSelector();
+      } catch(e) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    }
+
+    async function openOutputCsv() {
+      try {
+        var [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'CSV files', accept: { 'text/csv': ['.csv'] } }],
+          multiple: false
+        });
+        outputFileHandle = handle;
+        await loadAnnotations();
+        document.getElementById('output-status').textContent = handle.name;
+        document.getElementById('output-status').className = 'file-status active';
+        renderRowSelector();
+      } catch(e) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    }
+
+    var OUTPUT_HEADERS = [
+      'annotation_timestamp', 'feedback_hash', 'saved_at', 'physician_name', 'user_id',
+      'human_inaccuracies', 'human_inaccuracies_whywrong', 'human_inaccuracies_risk',
+      'human_hallucinations', 'human_hallucinations_risk',
+      'verifact_inaccuracies', 'verifact_hallucinations',
+      'verifact_risk_level', 'verifact_risk_explanation', 'edges', 'annotator_feedback'
+    ];
+
+    async function createOutputCsv() {
+      try {
+        var handle = await window.showSaveFilePicker({
+          suggestedName: 'verifactb_annotations.csv',
+          types: [{ description: 'CSV files', accept: { 'text/csv': ['.csv'] } }]
+        });
+        outputFileHandle = handle;
+        var writable = await handle.createWritable();
+        await writable.write(OUTPUT_HEADERS.map(csvEscape).join(',') + '\n');
+        await writable.close();
+        annotatedHashes = {};
+        document.getElementById('output-status').textContent = handle.name;
+        document.getElementById('output-status').className = 'file-status active';
+        renderRowSelector();
+      } catch(e) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    }
+
+    async function loadAnnotations() {
+      annotatedHashes = {};
+      if (!outputFileHandle) return;
+      var file = await outputFileHandle.getFile();
+      var text = await file.text();
+      var rows = csvToObjects(text);
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        annotatedHashes[r.feedback_hash] = {
+          edges: parseJsonList(r.edges),
+          timestamp: r.annotation_timestamp
+        };
+      }
+    }
+
+    // --- Row Selector ---
+    // Model upgrade cutoff: April 16, 2026 16:21 PM PT (= 23:21 UTC)
+    var MODEL_UPGRADE_UTC = new Date('2026-04-16T23:21:00Z');
+
+    function formatSourceTs(raw) {
+      if (!raw) return null;
+      var s = raw.trim();
+      if (s.indexOf('T') === -1) s = s.replace(' ', 'T');
+      // Only append Z if no timezone indicator present
+      var hasTz = /Z$/.test(s) || /[+-]\d{2}:\d{2}$/.test(s) || /[+-]\d{4}$/.test(s);
+      if (!hasTz) s += 'Z';
+      var d = new Date(s);
+      if (isNaN(d)) return null;
+      return {
+        date: d,
+        display: d.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+      };
+    }
+
+    function renderRowSelector() {
+      if (inputRows.length === 0) return;
+      var card = document.getElementById('row-selector-card');
+      card.hidden = false;
+      var list = document.getElementById('row-selector-list');
+      list.innerHTML = '';
+
+      var annotatedCount = 0;
+      for (var i = 0; i < inputRows.length; i++) {
+        var row = inputRows[i];
+        var isAnnotated = !!annotatedHashes[row.feedback_hash];
+        if (isAnnotated) annotatedCount++;
+
+        var el = document.createElement('div');
+        el.className = 'row-item' + (currentRowIndex === i ? ' selected' : '');
+        el.dataset.index = i;
+        el.onclick = function() { selectRow(parseInt(this.dataset.index)); };
+
+        var hash = document.createElement('span');
+        hash.className = 'hash';
+        hash.textContent = (row.feedback_hash || '').slice(0, 8);
+
+        var preview = document.createElement('span');
+        preview.className = 'preview';
+        preview.textContent = (row.output || '').slice(0, 80);
+
+        var badge = document.createElement('span');
+        badge.className = 'badge ' + (isAnnotated ? 'badge-done' : 'badge-pending');
+        badge.textContent = isAnnotated ? 'Done' : 'Pending';
+
+        // Generation date + model upgrade indicator + annotator
+        var dateSpan = document.createElement('span');
+        dateSpan.className = 'gen-date';
+        var tsInfo = formatSourceTs(row.saved_at);
+        if (tsInfo) {
+          dateSpan.textContent = tsInfo.display;
+          var modelTag = document.createElement('span');
+          var isAfter = tsInfo.date > MODEL_UPGRADE_UTC;
+          modelTag.className = 'model-tag ' + (isAfter ? 'after-upgrade' : 'before-upgrade');
+          modelTag.textContent = isAfter ? '(After model upgrade)' : '(Before model upgrade)';
+          dateSpan.appendChild(modelTag);
+        }
+        if (row.physician_name) {
+          dateSpan.appendChild(document.createTextNode(' — Annotator: ' + formatPhysicianName(row.physician_name)));
+        }
+
+        el.appendChild(hash);
+        el.appendChild(preview);
+        el.appendChild(dateSpan);
+        el.appendChild(badge);
+        list.appendChild(el);
+      }
+
+      document.getElementById('row-counter').textContent =
+        inputRows.length + ' rows | ' + annotatedCount + ' annotated';
+    }
+
+    // --- Row Selection ---
+    function selectRow(index) {
+      currentRowIndex = index;
+      currentEdges = [];
+      selectedHumanItem = null;
+      hideMessages();
+
+      var row = inputRows[index];
+
+      // Restore previous edges if annotated
+      if (annotatedHashes[row.feedback_hash]) {
+        currentEdges = JSON.parse(JSON.stringify(annotatedHashes[row.feedback_hash].edges));
+      }
+
+      // Update selector highlight
+      var items = document.querySelectorAll('.row-item');
+      items.forEach(function(el) {
+        el.className = 'row-item' + (parseInt(el.dataset.index) === index ? ' selected' : '');
+      });
+
+      renderContext(row);
+      renderComparison(row);
+      document.getElementById('context-card').hidden = false;
+      document.getElementById('comparison-card').hidden = false;
+      document.getElementById('feedback-card').hidden = false;
+      document.getElementById('feedback-field').value = '';
+    }
+
+    // --- Context Rendering ---
+    function getFirstLine(text) {
+      if (!text) return '(empty)';
+      var line = text.split('\n')[0].trim();
+      return line || text.slice(0, 120);
+    }
+
+    function renderContext(row) {
+      document.getElementById('ctx-query-preview').textContent = getFirstLine(row.query);
+      document.getElementById('ctx-query').textContent = row.query || '(empty)';
+      document.getElementById('ctx-prompt-preview').textContent = getFirstLine(row.prompt_text);
+      document.getElementById('ctx-prompt').textContent = row.prompt_text || '(empty)';
+      document.getElementById('ctx-output-preview').textContent = getFirstLine(row.output);
+      document.getElementById('ctx-output').textContent = row.output || '(empty)';
+    }
+
+    // --- Physician Name Formatting ---
+    function formatPhysicianName(raw) {
+      if (!raw) return 'Unknown';
+      var parts = raw.split(',').map(function(s) { return s.trim(); });
+      var last = parts[0] || '';
+      var first = parts.slice(1).join(' ') || '';
+      function titleCase(s) {
+        return s.toLowerCase().replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      }
+      var name = (first ? titleCase(first) + ' ' : '') + titleCase(last);
+      return 'Dr. ' + name;
+    }
+
+    // --- Comparison Rendering ---
+    function renderComparison(row) {
+      var humanPanel = document.getElementById('human-panel');
+      var verifactPanel = document.getElementById('verifact-panel');
+      humanPanel.innerHTML = '';
+      verifactPanel.innerHTML = '';
+
+      // Show annotator name
+      var nameDiv = document.createElement('div');
+      nameDiv.className = 'annotator-name';
+      nameDiv.textContent = 'Annotator: ' + formatPhysicianName(row.physician_name) +
+        (row.user_id ? ' (SID: ' + row.user_id + ')' : '');
+      humanPanel.appendChild(nameDiv);
+
+      // Parse human items
+      var hInaccuracies = parsePythonList(row.human_inaccuracies);
+      var hInaccuraciesWhy = parsePythonList(row.human_inaccuracies_whywrong);
+      var hInaccuraciesRisk = parseIntList(row.human_inaccuracies_risk);
+      var hHallucinations = parsePythonList(row.human_hallucinations);
+      var hHallucinationsRisk = parseIntList(row.human_hallucinations_risk);
+
+      // Parse verifact items
+      var vInaccuracies = parseJsonList(row.verifact_inaccuracies);
+      var vHallucinations = parseJsonList(row.verifact_hallucinations);
+      var vRiskLevel = row.verifact_risk_level || '';
+      var vRiskExpl = row.verifact_risk_explanation || '';
+
+      // Build human cards: Hallucinations first, then Inaccuracies
+      // Index scheme: hallucinations get indices 0..H-1, inaccuracies get H..H+I-1
+      var humanIndex = 0;
+
+      var hHalluHeader = document.createElement('div');
+      hHalluHeader.className = 'category-header hallucination';
+      hHalluHeader.textContent = 'Hallucinations (' + hHallucinations.length + ')';
+      humanPanel.appendChild(hHalluHeader);
+
+      for (var i = 0; i < hHallucinations.length; i++) {
+        humanPanel.appendChild(createItemCard(
+          'human', humanIndex, 'hallucination', hHallucinations[i],
+          null, hHallucinationsRisk[i] || null
+        ));
+        humanIndex++;
+      }
+      if (hHallucinations.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.padding = '0.5rem';
+        empty.textContent = 'None';
+        humanPanel.appendChild(empty);
+      }
+
+      var hInaccHeader = document.createElement('div');
+      hInaccHeader.className = 'category-header inaccuracy';
+      hInaccHeader.textContent = 'Inaccuracies (' + hInaccuracies.length + ')';
+      humanPanel.appendChild(hInaccHeader);
+
+      for (var i = 0; i < hInaccuracies.length; i++) {
+        humanPanel.appendChild(createItemCard(
+          'human', humanIndex, 'inaccuracy', hInaccuracies[i],
+          hInaccuraciesWhy[i] || null, hInaccuraciesRisk[i] || null
+        ));
+        humanIndex++;
+      }
+      if (hInaccuracies.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.padding = '0.5rem';
+        empty.textContent = 'None';
+        humanPanel.appendChild(empty);
+      }
+
+      // Additional feedback (below all findings)
+      var addFeedback = row.additional_feedback ? row.additional_feedback.trim() : '';
+      var feedbackHeader = document.createElement('div');
+      feedbackHeader.className = 'category-header inaccuracy';
+      feedbackHeader.style.background = '#e0e7ff';
+      feedbackHeader.style.color = '#3730a3';
+      feedbackHeader.textContent = 'Additional Feedback';
+      humanPanel.appendChild(feedbackHeader);
+      if (addFeedback) {
+        humanPanel.appendChild(createItemCard(
+          'human', humanIndex, 'feedback', addFeedback, null, null
+        ));
+        humanIndex++;
+      } else {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.padding = '0.5rem';
+        empty.textContent = 'None';
+        humanPanel.appendChild(empty);
+      }
+
+      // Build verifact cards: risk summary, then Hallucinations, then Inaccuracies
+      if (vRiskLevel) {
+        var riskDiv = document.createElement('div');
+        riskDiv.className = 'risk-summary';
+        riskDiv.innerHTML = 'Overall risk: <span class="risk-level">' + escapeHtml(vRiskLevel) + '/5</span>' +
+          (vRiskExpl ? '<div class="item-meta" style="margin-top:0.4rem;">Why: ' + escapeHtml(vRiskExpl) + '</div>' : '');
+        verifactPanel.appendChild(riskDiv);
+      }
+
+      var verifactIndex = 0;
+
+      var vHalluHeader = document.createElement('div');
+      vHalluHeader.className = 'category-header hallucination';
+      vHalluHeader.textContent = 'Hallucinations (' + vHallucinations.length + ')';
+      verifactPanel.appendChild(vHalluHeader);
+
+      for (var i = 0; i < vHallucinations.length; i++) {
+        verifactPanel.appendChild(createItemCard(
+          'verifact', verifactIndex, 'hallucination', vHallucinations[i], null, null
+        ));
+        verifactIndex++;
+      }
+      if (vHallucinations.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.padding = '0.5rem';
+        empty.textContent = 'None';
+        verifactPanel.appendChild(empty);
+      }
+
+      var vInaccHeader = document.createElement('div');
+      vInaccHeader.className = 'category-header inaccuracy';
+      vInaccHeader.textContent = 'Inaccuracies (' + vInaccuracies.length + ')';
+      verifactPanel.appendChild(vInaccHeader);
+
+      for (var i = 0; i < vInaccuracies.length; i++) {
+        verifactPanel.appendChild(createItemCard(
+          'verifact', verifactIndex, 'inaccuracy', vInaccuracies[i], null, null
+        ));
+        verifactIndex++;
+      }
+      if (vInaccuracies.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.padding = '0.5rem';
+        empty.textContent = 'None';
+        verifactPanel.appendChild(empty);
+      }
+
+      updateLinkedState();
+      requestAnimationFrame(drawEdges);
+    }
+
+    function createItemCard(side, index, type, text, whyWrong, risk) {
+      var card = document.createElement('div');
+      card.className = 'item-card';
+      card.dataset.side = side;
+      card.dataset.index = index;
+      card.dataset.type = type;
+      card.onclick = function(e) { handleItemClick(side, index, type); };
+
+      var badge = document.createElement('span');
+      badge.className = 'type-badge ' + type;
+      badge.textContent = type;
+      card.appendChild(badge);
+
+      var textEl = document.createElement('div');
+      textEl.className = 'item-text';
+      textEl.textContent = text;
+      card.appendChild(textEl);
+
+      if (whyWrong || risk != null) {
+        var meta = document.createElement('div');
+        meta.className = 'item-meta';
+        var parts = [];
+        if (whyWrong) parts.push('Why: ' + whyWrong);
+        if (risk != null) parts.push('<span class="risk-tag">Risk: ' + risk + '</span>');
+        meta.innerHTML = parts.join(' &middot; ');
+        card.appendChild(meta);
+      }
+
+      return card;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // --- Edge Logic ---
+    function handleItemClick(side, index, type) {
+      if (side === 'human') {
+        if (selectedHumanItem && selectedHumanItem.index === index) {
+          selectedHumanItem = null;
+        } else {
+          selectedHumanItem = { index: index, type: type };
+        }
+        updateSelectionState();
+      } else if (side === 'verifact') {
+        if (!selectedHumanItem) return;
+        // Check if edge already exists
+        var existingIdx = currentEdges.findIndex(function(e) {
+          return e.humanIndex === selectedHumanItem.index && e.verifactIndex === index;
+        });
+        if (existingIdx >= 0) {
+          currentEdges.splice(existingIdx, 1);
+        } else {
+          currentEdges.push({
+            humanIndex: selectedHumanItem.index,
+            humanType: selectedHumanItem.type,
+            verifactIndex: index,
+            verifactType: type
+          });
+        }
+        selectedHumanItem = null;
+        updateSelectionState();
+        updateLinkedState();
+        drawEdges();
+      }
+    }
+
+    function updateSelectionState() {
+      document.querySelectorAll('.item-card').forEach(function(card) {
+        var isSelected = selectedHumanItem &&
+          card.dataset.side === 'human' &&
+          parseInt(card.dataset.index) === selectedHumanItem.index;
+        card.classList.toggle('selected', isSelected);
+      });
+    }
+
+    function updateLinkedState() {
+      var linkedHuman = new Set();
+      var linkedVerifact = new Set();
+      currentEdges.forEach(function(e) {
+        linkedHuman.add(e.humanIndex);
+        linkedVerifact.add(e.verifactIndex);
+      });
+      document.querySelectorAll('.item-card').forEach(function(card) {
+        var idx = parseInt(card.dataset.index);
+        var isLinked = card.dataset.side === 'human' ? linkedHuman.has(idx) : linkedVerifact.has(idx);
+        card.classList.toggle('linked', isLinked);
+      });
+    }
+
+    function clearEdges() {
+      currentEdges = [];
+      selectedHumanItem = null;
+      updateSelectionState();
+      updateLinkedState();
+      drawEdges();
+    }
+
+    function annotateNext() {
+      if (currentRowIndex === null || inputRows.length === 0) return;
+      var next = currentRowIndex + 1;
+      if (next >= inputRows.length) next = 0;
+      selectRow(next);
+      document.getElementById('row-selector-list').querySelector('[data-index="' + next + '"]').scrollIntoView({ block: 'nearest' });
+    }
+
+    // --- SVG Edge Drawing ---
+    function drawEdges() {
+      var svg = document.getElementById('edge-svg');
+      svg.innerHTML = '';
+      var container = document.getElementById('comparison-container');
+      var containerRect = container.getBoundingClientRect();
+
+      // Resize SVG to match container
+      svg.style.width = container.scrollWidth + 'px';
+      svg.style.height = container.scrollHeight + 'px';
+      svg.setAttribute('viewBox', '0 0 ' + container.scrollWidth + ' ' + container.scrollHeight);
+
+      currentEdges.forEach(function(edge, idx) {
+        var humanEl = document.querySelector('[data-side="human"][data-index="' + edge.humanIndex + '"]');
+        var verifactEl = document.querySelector('[data-side="verifact"][data-index="' + edge.verifactIndex + '"]');
+        if (!humanEl || !verifactEl) return;
+
+        var hRect = humanEl.getBoundingClientRect();
+        var vRect = verifactEl.getBoundingClientRect();
+
+        var x1 = hRect.right - containerRect.left;
+        var y1 = hRect.top + hRect.height / 2 - containerRect.top;
+        var x2 = vRect.left - containerRect.left;
+        var y2 = vRect.top + vRect.height / 2 - containerRect.top;
+        var midX = (x1 + x2) / 2;
+
+        var d = 'M ' + x1 + ' ' + y1 + ' C ' + midX + ' ' + y1 + ', ' + midX + ' ' + y2 + ', ' + x2 + ' ' + y2;
+
+        var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        var hitPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        hitPath.setAttribute('d', d);
+        hitPath.setAttribute('class', 'edge-hit');
+        hitPath.dataset.edgeIdx = idx;
+        hitPath.addEventListener('click', function() {
+          removeEdge(parseInt(this.dataset.edgeIdx));
+        });
+
+        var linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        linePath.setAttribute('d', d);
+        linePath.setAttribute('class', 'edge-line');
+
+        g.appendChild(hitPath);
+        g.appendChild(linePath);
+        svg.appendChild(g);
+      });
+    }
+
+    function removeEdge(idx) {
+      currentEdges.splice(idx, 1);
+      updateLinkedState();
+      drawEdges();
+    }
+
+    // Redraw on resize
+    var resizeObserver = new ResizeObserver(function() {
+      if (currentRowIndex !== null) drawEdges();
+    });
+
+    // --- Save ---
+    async function saveAnnotation() {
+      hideMessages();
+      if (!outputFileHandle) {
+        showError('Please open or create an annotations CSV first.');
+        return;
+      }
+      if (currentRowIndex === null) {
+        showError('No row selected.');
+        return;
+      }
+
+      var row = inputRows[currentRowIndex];
+      var csvRow = [
+        new Date().toISOString(),
+        row.feedback_hash,
+        row.saved_at || '',
+        row.physician_name || '',
+        row.user_id || '',
+        row.human_inaccuracies || '',
+        row.human_inaccuracies_whywrong || '',
+        row.human_inaccuracies_risk || '',
+        row.human_hallucinations || '',
+        row.human_hallucinations_risk || '',
+        row.verifact_inaccuracies || '',
+        row.verifact_hallucinations || '',
+        row.verifact_risk_level || '',
+        row.verifact_risk_explanation || '',
+        JSON.stringify(currentEdges),
+        document.getElementById('feedback-field').value.trim()
+      ].map(csvEscape).join(',');
+
+      try {
+        var file = await outputFileHandle.getFile();
+        var existingContent = await file.text();
+        var writable = await outputFileHandle.createWritable();
+        var newContent = existingContent;
+        if (!newContent.endsWith('\n')) newContent += '\n';
+        newContent += csvRow + '\n';
+        await writable.write(newContent);
+        await writable.close();
+
+        // Update local state
+        annotatedHashes[row.feedback_hash] = {
+          edges: JSON.parse(JSON.stringify(currentEdges)),
+          timestamp: new Date().toISOString()
+        };
+        renderRowSelector();
+        showSuccess('Saved! (' + currentEdges.length + ' edge' + (currentEdges.length !== 1 ? 's' : '') + ')');
+      } catch(e) {
+        showError('Failed to save: ' + e.message);
+      }
+    }
+
+    // --- Messages ---
+    function showError(msg) {
+      var el = document.getElementById('msg-validation');
+      el.textContent = msg;
+      el.hidden = false;
+    }
+    function showSuccess(msg) {
+      var el = document.getElementById('msg-success');
+      el.textContent = msg;
+      el.hidden = false;
+    }
+    function hideMessages() {
+      document.getElementById('msg-validation').hidden = true;
+      document.getElementById('msg-success').hidden = true;
+    }
+
+    // --- Init ---
+    window.addEventListener('DOMContentLoaded', function() {
+      var container = document.getElementById('comparison-container');
+      if (container) resizeObserver.observe(container);
+    });
+  </script>
+</body>
+</html>
