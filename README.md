@@ -16,11 +16,11 @@ To add a UI:
 
 All files live in the [`uis/`](uis/) directory.
 
-| File | Annotation Target | Description |
-|------|-------------------|-------------|
-| `chatehr_annotation_ui.html` | ChatEHR UI responses | Evaluates AI-generated clinical summaries. Annotators identify hallucinations, inaccuracies, and omissions, rate potential harm severity (Levels 1–4), and provide free-text justifications. Outputs a JSON payload tagged with `#chatehreval` for clipboard export. |
-| `ellis_caleo_ui.html` | Tumor board summaries | Annotates AI-generated tumor board summaries. Same issue taxonomy (hallucinations, inaccuracies, omissions) with harm-level ratings. Writes annotations incrementally to a local CSV file via the File System Access API (Chrome or Edge only). |
-| `verifact_comparison.html` | VeriFactB predictions | Side-by-side comparison of human clinician annotations against VeriFactB automated predictions. Annotators draw edges to map matching findings between the two sets, enabling evaluation of automated fact-verification accuracy. Saves to CSV. |
+| File | Annotation Target | Description | HTML Preview |
+|------|-------------------|-------------|--------------|
+| `chatehr_annotation_ui.html` | ChatEHR UI responses | Evaluates AI-generated clinical summaries. Annotators identify hallucinations, inaccuracies, and omissions, rate potential harm severity (Levels 1–4), and provide free-text justifications. Outputs a JSON payload tagged with `#chatehreval` for clipboard export. | [preview](https://htmlpreview.github.io/?https://github.com/som-guideai/annotation-UIs/blob/main/uis/chatehr_annotation_ui.html) |
+| `ellis_caleo_ui.html` | Tumor board summaries | Annotates AI-generated tumor board summaries. Same issue taxonomy (hallucinations, inaccuracies, omissions) with harm-level ratings. Writes annotations incrementally to a local CSV file via the File System Access API (Chrome or Edge only). | [preview](https://htmlpreview.github.io/?https://github.com/som-guideai/annotation-UIs/blob/main/uis/ellis_caleo_ui.html) |
+| `verifact_comparison.html` | VeriFactB predictions | Side-by-side comparison of human clinician annotations against VeriFactB automated predictions. Annotators draw edges to map matching findings between the two sets, enabling evaluation of automated fact-verification accuracy. Saves to CSV. | [preview](https://htmlpreview.github.io/?https://github.com/som-guideai/annotation-UIs/blob/main/uis/verifact_comparison.html) |
 
 ## 🔬 How They Work
 
@@ -28,13 +28,15 @@ All UIs run entirely in the browser — just open the `.html` file locally. No s
 
 ## 🔐 Integration and Security
 
-Because these UIs are used to annotate PHI data, everything runs locally on the annotator's machine. Final annotations are shared via standard secure channels:
+Because these UIs are used to annotate PHI data, everything runs locally on the annotator's machine. **Always download the HTML files and open them locally** — do not use the previews above for actual annotation work, as those are rendered by a third-party service and are not secure for handling PHI.
+
+Final annotations are shared via standard secure channels:
 
 - **Secure email** — for CSV-based UIs, the annotator emails the completed file.
 - **Clipboard with tagged JSON** — for the ChatEHR UI, the annotator copies a JSON object prefixed with a regex-recognizable tag (`#chatehreval`) and pastes it into the ChatEHR free-text feedback field.
 
-This keeps things simple and secure, though it does mean there is no centralized aggregation or real-time visibility into annotation progress.
+This keeps things simple and secure, but the lack of integration can create friction — there is no centralized aggregation or real-time visibility into annotation progress.
 
 ## 🧭 Future Direction
 
-If this is worth exploring, we could partner with TDS Data Science to host these UIs online behind a SID login, with annotations stored in secure places (e.g., SQL tables in Databricks). This would eliminate manual file sharing, enable progress tracking, and be reusable across projects on both the .edu and .org sides.
+If this is worth exploring, we could partner with TDS Data Science to build the capability to securely deploy annotation UIs with tighter integration — behind a SID login, with annotations stored in secure places (e.g., SQL tables in Databricks). That infrastructure would then be reusable across projects on both the .edu and .org sides. A concrete starting point could be the ChatEHR annotation workflow for automations such as radiology, where annotations are already being actively collected.
