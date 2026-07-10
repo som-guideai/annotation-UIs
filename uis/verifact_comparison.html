@@ -111,6 +111,18 @@
 
     /* Context section */
     .context-section { margin-top: 0.5rem; }
+    .mrn-line {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1e40af;
+    }
+    .mrn-line[hidden] { display: none; }
+    .mrn-line .mrn-value { font-family: monospace; }
     .context-block {
       margin-bottom: 0.75rem;
       border: 1px solid #e2e8f0;
@@ -212,6 +224,16 @@
     .type-badge.hallucination { background: #fce7f3; color: #9d174d; }
     .type-badge.feedback { background: #e0e7ff; color: #3730a3; }
     .item-card .item-text { color: #334155; line-height: 1.5; }
+    .item-card .item-field { margin-bottom: 0.55rem; }
+    .item-card .item-field:last-of-type { margin-bottom: 0; }
+    .item-card .item-field-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 0.15rem;
+    }
+    .item-card .item-field.explanation .item-field-label { color: #92400e; }
+    .item-card .risk-inline { font-weight: 700; color: #475569; white-space: nowrap; }
     .item-card .item-meta { margin-top: 0.4rem; font-size: 0.75rem; color: #64748b; }
     .item-card .item-meta .risk-tag {
       display: inline-block;
@@ -346,14 +368,7 @@
     <!-- Context section -->
     <div class="card" id="context-card" hidden>
       <div class="context-section">
-        <div class="context-block">
-          <div class="context-label">Inputs provided to the AI</div>
-          <div class="context-preview" id="ctx-query-preview"></div>
-          <details>
-            <summary>Show full content</summary>
-            <div class="context-content" id="ctx-query"></div>
-          </details>
-        </div>
+        <div class="mrn-line" id="ctx-mrn" hidden>Patient MRN: <span class="mrn-value" id="ctx-mrn-value"></span></div>
         <div class="context-block">
           <div class="context-label">User prompt</div>
           <div class="context-preview" id="ctx-prompt-preview"></div>
@@ -382,6 +397,10 @@
         Cross-category links are allowed (e.g., a human hallucination can match a VeriFactB inaccuracy).
         Click an existing edge line (turns red on hover) to remove it.
       </div>
+      <div class="instructions" style="margin-top:0.75rem;">
+        Risk scores (clinician and VeriFactB) use a 1&ndash;5 AHRQ scale &mdash; see the
+        <a href="https://htmlpreview.github.io/?https://github.com/som-guideai/annotation-UIs/blob/main/uis/chatehr_annotation_ui.html" target="_blank" rel="noopener noreferrer">annotation platform used here</a>.
+      </div>
       <div class="comparison-container" id="comparison-container">
         <svg class="edge-svg" id="edge-svg"></svg>
         <div class="comparison-grid">
@@ -399,7 +418,7 @@
       <div style="margin-top:1rem; display:flex; gap:0.75rem; align-items:center;">
         <button class="btn btn-success" onclick="saveAnnotation()">Save annotation</button>
         <button class="btn btn-secondary" onclick="clearEdges()">Clear all edges</button>
-        <button class="btn btn-primary" onclick="annotateNext()" style="margin-left:auto;">Annotate next patient</button>
+        <button class="btn btn-primary" id="next-btn" onclick="annotateNext()" style="margin-left:auto;">Skip to next patient</button>
       </div>
       <div id="msg-validation" class="msg msg-error" hidden></div>
       <div id="msg-success" class="msg msg-success" hidden></div>
@@ -702,6 +721,18 @@
       document.getElementById('comparison-card').hidden = false;
       document.getElementById('feedback-card').hidden = false;
       document.getElementById('feedback-field').value = '';
+      updateNextButtonLabel();
+    }
+
+    // Reflect whether the current row has been saved: before saving the primary
+    // action is to move on without recording ("Skip to next patient"); after
+    // saving it is to proceed with the completed work ("Continue to next patient").
+    function updateNextButtonLabel() {
+      var btn = document.getElementById('next-btn');
+      if (!btn) return;
+      var row = currentRowIndex !== null ? inputRows[currentRowIndex] : null;
+      var saved = !!(row && annotatedHashes[row.feedback_hash]);
+      btn.textContent = saved ? 'Continue to next patient' : 'Skip to next patient';
     }
 
     // --- Context Rendering ---
@@ -712,8 +743,15 @@
     }
 
     function renderContext(row) {
-      document.getElementById('ctx-query-preview').textContent = getFirstLine(row.query);
-      document.getElementById('ctx-query').textContent = row.query || '(empty)';
+      var mrn = row.mrn != null ? String(row.mrn).trim() : '';
+      var mrnEl = document.getElementById('ctx-mrn');
+      if (mrn) {
+        document.getElementById('ctx-mrn-value').textContent = mrn;
+        mrnEl.hidden = false;
+      } else {
+        document.getElementById('ctx-mrn-value').textContent = '';
+        mrnEl.hidden = true;
+      }
       document.getElementById('ctx-prompt-preview').textContent = getFirstLine(row.prompt_text);
       document.getElementById('ctx-prompt').textContent = row.prompt_text || '(empty)';
       document.getElementById('ctx-output-preview').textContent = getFirstLine(row.output);
@@ -891,22 +929,48 @@
       badge.textContent = type;
       card.appendChild(badge);
 
-      var textEl = document.createElement('div');
-      textEl.className = 'item-text';
-      textEl.textContent = text;
-      card.appendChild(textEl);
-
-      if (whyWrong || risk != null) {
-        var meta = document.createElement('div');
-        meta.className = 'item-meta';
-        var parts = [];
-        if (whyWrong) parts.push('Why: ' + whyWrong);
-        if (risk != null) parts.push('<span class="risk-tag">Risk: ' + risk + '</span>');
-        meta.innerHTML = parts.join(' &middot; ');
-        card.appendChild(meta);
+      if (side === 'human' && type === 'inaccuracy') {
+        // Clinician's explanation first (with the risk appended), then the section
+        // they flagged. If no explanation was given, the risk rides with the section.
+        if (whyWrong) {
+          card.appendChild(makeItemField('Clinician explanation', whyWrong, 'explanation', risk));
+          card.appendChild(makeItemField('Inaccurate section reported by the clinician', text));
+        } else {
+          card.appendChild(makeItemField('Inaccurate section reported by the clinician', text, null, risk));
+        }
+      } else if (side === 'human' && type === 'hallucination') {
+        card.appendChild(makeItemField('Section reported as a hallucination by the clinician', text, null, risk));
+      } else {
+        // VeriFactB predictions and free-text feedback: plain text.
+        var textEl = document.createElement('div');
+        textEl.className = 'item-text';
+        textEl.textContent = text;
+        card.appendChild(textEl);
       }
 
       return card;
+    }
+
+    // A labeled sub-block within an item card (label above its value). When a risk
+    // is provided it is appended inline to the value text as "Risk: N/5".
+    function makeItemField(label, text, extraClass, risk) {
+      var wrap = document.createElement('div');
+      wrap.className = 'item-field' + (extraClass ? ' ' + extraClass : '');
+      var lab = document.createElement('div');
+      lab.className = 'item-field-label';
+      lab.textContent = label;
+      var val = document.createElement('div');
+      val.className = 'item-text';
+      val.textContent = text;
+      if (risk != null) {
+        var riskSpan = document.createElement('span');
+        riskSpan.className = 'risk-inline';
+        riskSpan.textContent = ' Risk: ' + risk + '/5';
+        val.appendChild(riskSpan);
+      }
+      wrap.appendChild(lab);
+      wrap.appendChild(val);
+      return wrap;
     }
 
     function escapeHtml(str) {
@@ -981,7 +1045,20 @@
       var next = currentRowIndex + 1;
       if (next >= inputRows.length) next = 0;
       selectRow(next);
-      document.getElementById('row-selector-list').querySelector('[data-index="' + next + '"]').scrollIntoView({ block: 'nearest' });
+      // Keep the newly selected item visible *within the selector list only* --
+      // adjusting the list's own scrollTop never moves the page, so the user stays
+      // put by the comparison area instead of being jumped back to the top.
+      var list = document.getElementById('row-selector-list');
+      var item = list.querySelector('[data-index="' + next + '"]');
+      if (item) {
+        var listRect = list.getBoundingClientRect();
+        var itemRect = item.getBoundingClientRect();
+        if (itemRect.top < listRect.top) {
+          list.scrollTop -= (listRect.top - itemRect.top);
+        } else if (itemRect.bottom > listRect.bottom) {
+          list.scrollTop += (itemRect.bottom - listRect.bottom);
+        }
+      }
     }
 
     // --- SVG Edge Drawing ---
@@ -1091,6 +1168,7 @@
           timestamp: new Date().toISOString()
         };
         renderRowSelector();
+        updateNextButtonLabel();
         showSuccess('Saved! (' + currentEdges.length + ' edge' + (currentEdges.length !== 1 ? 's' : '') + ')');
       } catch(e) {
         showError('Failed to save: ' + e.message);
